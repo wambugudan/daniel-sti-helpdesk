@@ -1,28 +1,26 @@
-// prisma/schema.prisma
-
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite" // Change this to "postgresql" or "mysql" in production
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
 model User {
-  id        String   @id @default(cuid()) 
-  name      String
-  email     String   @unique
+  id           String        @id @default(cuid())
+  name         String
+  email        String        @unique
   workRequests WorkRequest[]
 }
 
 model WorkRequest {
-  id          String   @id @default(cuid())
+  id          String   @id @default(uuid())
   title       String
-  budget      String   // You might want to store this as an Int or Decimal
+  budget      String
   description String
   category    String
   userId      String?
-  user        User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
   createdAt   DateTime @default(now())
+  user        User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

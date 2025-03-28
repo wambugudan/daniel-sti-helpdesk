@@ -48,7 +48,7 @@ const WorkRequestForm = ({ requestId }) => {
       description: data.description,
       budget: parseFloat(data.budget),
       category: data.category,
-      fileURL: data.file[0] ? URL.createObjectURL(data.file[0]) : data.fileURL || null,
+      fileURL: data.file && data.file[0] ? await uploadFile(data.file[0]) : data.fileURL || "", // Default to empty string if no file
     };
 
     try {
@@ -69,6 +69,22 @@ const WorkRequestForm = ({ requestId }) => {
     } finally {
       setLoading(false);
     }
+  };
+
+  // Helper function to handle file upload
+  const uploadFile = async (file) => {
+    const formData = new FormData();
+    formData.append("file", file);
+
+    const response = await fetch("/api/upload", {
+      method: "POST",
+      body: formData,
+    });
+
+    if (!response.ok) throw new Error("File upload failed");
+
+    const data = await response.json();
+    return data.fileURL; // Return the uploaded file URL
   };
 
   // Handle deleting a work request

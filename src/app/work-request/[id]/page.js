@@ -1,13 +1,18 @@
 import WorkRequestForm from "../../components/workRequestForm";
 
+const WorkRequestPage = async ({ params }) => {
+  const { id } = await params; // Await params
 
-const WorkRequestPage = ({ params }) => {
+  // Handle undefined params
+  if (!id) return <div>Loading...</div>;
+
+  // Render the form
   return (
     <div className="max-w-lg mx-auto mt-10">
       <h1 className="text-2xl font-semibold mb-4">
-        {params.id === "new" ? "Create Work Request" : "Edit Work Request"}
+        {id === "new" ? "Create Work Request" : "Edit Work Request"}
       </h1>
-      <WorkRequestForm requestId={params.id} />
+      <WorkRequestForm requestId={id} />
     </div>
   );
 };
