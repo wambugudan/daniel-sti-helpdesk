@@ -1,13 +1,16 @@
-import { PrismaClient } from "@prisma/client";
+import prisma from "@/libs/prisma";
 
-const prisma = new PrismaClient();
 
 export const dynamic = 'force-dynamic';
 
+// API for handling GET Requests
 export async function GET(request, context) {
   try {
-    const { params } = context;
-    const { id } = await params; // Await params
+    const params = await context.params; 
+    const { id } = params;
+
+    // const { id } = context.params || {};
+
 
     console.log("Fetching work request with ID:", id);
 
@@ -35,10 +38,12 @@ export async function GET(request, context) {
   }
 }
 
+// API for handling PUT Requests
 export async function PUT(request, context) {
   try {
-    const { params } = context;
-    const { id } = params; // Do not await params, destructure directly
+    const params = await context.params; 
+    const { id } = params;
+
 
     if (!id) {
       throw new Error("Missing or invalid ID in request parameters");
@@ -64,7 +69,8 @@ export async function PUT(request, context) {
       data: {
         title,
         description,
-        budget: parseFloat(budget), // Ensure budget is a number
+        // budget: parseFloat(budget), // Ensure budget is a number
+        budget: String(budget), // Convert budget to a string
         category,
         fileURL: fileURL || undefined, // Use undefined if fileURL is null or empty
       },
@@ -83,10 +89,13 @@ export async function PUT(request, context) {
   }
 }
 
+
+// API for handling DELETE Requests
 export async function DELETE(request, context) {
   try {
-    const { params } = context;
-    const { id } = await params; // Await params
+    const params = await context.params; 
+    const { id } = params;
+    // const { id } = context.params || {};
 
     if (!id) {
       throw new Error("Missing or invalid ID in request parameters");

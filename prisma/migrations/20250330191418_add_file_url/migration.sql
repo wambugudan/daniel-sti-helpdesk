@@ -1,7 +1,6 @@
 /*
   Warnings:
 
-  - You are about to alter the column `budget` on the `WorkRequest` table. The data in that column could be lost. The data in that column will be cast from `String` to `Float`.
   - Added the required column `updatedAt` to the `WorkRequest` table without a default value. This is not possible if the table is not empty.
 
 */
@@ -11,8 +10,8 @@ PRAGMA foreign_keys=OFF;
 CREATE TABLE "new_WorkRequest" (
     "id" TEXT NOT NULL PRIMARY KEY,
     "title" TEXT NOT NULL,
+    "budget" TEXT NOT NULL,
     "description" TEXT NOT NULL,
-    "budget" REAL NOT NULL,
     "category" TEXT NOT NULL,
     "fileURL" TEXT,
     "userId" TEXT,
@@ -25,4 +24,3 @@ DROP TABLE "WorkRequest";
 ALTER TABLE "new_WorkRequest" RENAME TO "WorkRequest";
 PRAGMA foreign_keys=ON;
 PRAGMA defer_foreign_keys=OFF;
-ALTER TABLE "WorkRequest" ADD COLUMN "updatedAt" TIMESTAMP DEFAULT CURRENT_TIMESTAMP;

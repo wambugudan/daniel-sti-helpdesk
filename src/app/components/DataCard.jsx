@@ -1,34 +1,115 @@
-import React from 'react'
+import { useRouter } from "next/navigation";
+import { useTheme } from "@/context/ThemeProvider";
+import { FaFilePdf, FaFileWord, FaFileImage, FaFileAlt } from "react-icons/fa";
 
-const DataCard = ({workRequest}) => {
-    // username= "John Kamau",
-    // title="Demo Title",
-    // budget= "$100",
-    // description= "This is a sample description to showcase how the card will look when there is no data.",
-    // category="Web Development"
+const getFileIcon = (fileURL) => {
+  if (!fileURL) return <FaFileAlt className="text-gray-500 text-2xl" />;
 
-    return (
-    <div className="bg-white shadow-lg rounded-lg p-4 w-full sm:w-3/4 md:w-4/5 lg:w-4/5 xl:w-2/3 mx-auto transition-transform duration-300 hover:scale-105 hover:shadow-lg">
-        {/* Display username */}
-        <h4 className='text-sm font-semibold text-gray-700 mt-1'>{workRequest.userId}</h4>
-        
-        {/* Task Title */}
-        <h3 className='text-lg font-bold text-gray-900'>{workRequest.title}</h3>
-        
-        {/* Display Budget */}
-        <h3 className='text-sm text-gray-500 mt-1'>Budget: <span className='font-medium text-green-600'>{workRequest.budget}</span></h3>
+  const ext = fileURL.split(".").pop().toLowerCase();
 
-        {/* Description preview the first 50 words */}
-        <p className='text-sm text-gray-600 mt-2'>
-            {workRequest.description.split(" ").slice(0, 50).join(" ")}...
-        </p>
+  switch (ext) {
+    case "pdf":
+      return <FaFilePdf className="text-red-500 text-2xl" />;
+    case "doc":
+    case "docx":
+      return <FaFileWord className="text-blue-500 text-2xl" />;
+    case "jpg":
+    case "jpeg":
+    case "png":
+      return <FaFileImage className="text-green-500 text-2xl" />;
+    default:
+      return <FaFileAlt className="text-gray-500 text-2xl" />;
+  }
+};
 
-        {/* Display Task Category Button */}
-        <button className='mt-3 px-3 py-1 text-xs font-medium bg-teal-100 text-teal-700 rounded-full'>
-            {workRequest.category}
+const DataCard = ({ workRequest }) => {
+  const { theme } = useTheme();
+  const router = useRouter(); 
+
+  // Function to Handle Delete Task
+  const handleDelete = async (id) => {
+    if (!confirm("Are you sure you want to delete this work request?")) return;
+    try {
+      const response = await fetch(`/api/work-request/${id}`, { method: "DELETE" });
+      if (!response.ok) throw new Error("Failed to delete request");
+      toast.success("Work request deleted!");
+    } catch (error) {
+      toast.error("Failed to delete request!");
+    }
+  };
+
+  return (
+    <div
+      className={`shadow-lg rounded-lg p-4 w-full sm:w-3/4 md:w-4/5 lg:w-4/5 xl:w-2/3 mx-auto transition-transform duration-300 hover:scale-105 hover:shadow-lg ${
+        theme === "dark" ? "bg-gray-800 text-white" : "bg-white text-gray-900"
+      }`}
+    >
+      {/* Display username */}
+      <h4 className="text-sm font-semibold">{workRequest.userId}</h4>
+
+      {/* Task Title */}
+      <h3 className="text-lg font-bold">{workRequest.title}</h3>
+
+      {/* Display Budget */}
+      <h3 className="text-sm mt-1">
+        Budget: <span className="font-medium text-green-400">{workRequest.budget}</span>
+      </h3>
+
+      {/* Description preview (first 50 words) */}
+      <p className="text-sm mt-2">
+        {workRequest.description ? workRequest.description.split(" ").slice(0, 50).join(" ") : "No description available"}...
+      </p>
+
+      {/* Display File Icon and Link if File Exists */}
+      {workRequest.fileURL && (
+        <div className="flex items-center gap-2 mt-3">
+          {getFileIcon(workRequest.fileURL)}
+          <a
+            href={workRequest.fileURL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-blue-600 underline"
+          >
+            View File
+          </a>
+        </div>
+        )
+      }
+
+      {/* Display Task Category Button */}
+      <button
+        className={`mt-3 px-3 py-1 text-xs font-medium rounded-full ${
+          theme === "dark" ? "bg-teal-900 text-teal-300" : "bg-teal-100 text-teal-700"
+        }`}
+      >
+        {workRequest.category}
+      </button>
+
+      {/* Edit and Delete Buttons */}
+      <div className="mt-4 flex gap-3">
+        <button
+          onClick={() => router.push(`/work-request/${workRequest.id}`)}
+          className={`px-3 py-1 text-xs font-medium rounded-md ${
+            theme === "dark" ? "bg-teal-600 hover:bg-teal-500 text-white" : "bg-teal-500 hover:bg-teal-400 text-white"
+          }`}
+        >
+          Edit
         </button>
-    </div>
-  )
-}
 
-export default DataCard
+        <button
+          onClick={() => handleDelete(workRequest.id)}
+          className={`px-3 py-1 text-xs font-medium rounded-md ${
+            theme === "dark" ? "bg-red-600 text-white hover:bg-red-500" : "bg-red-500 text-white hover:bg-red-400"
+          }`}
+        >
+          Delete
+        </button>
+      </div>
+    </div>
+  );
+};
+
+export default DataCard;
+
+
+

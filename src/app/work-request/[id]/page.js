@@ -1,7 +1,9 @@
 import WorkRequestForm from "../../components/workRequestForm";
 
 const WorkRequestPage = async ({ params }) => {
-  const { id } = await params; // Await params
+  // const { id } = params; 
+  const resolvedParams = await params
+  const{id} = await resolvedParams
 
   // Handle undefined params
   if (!id) return <div>Loading...</div>;

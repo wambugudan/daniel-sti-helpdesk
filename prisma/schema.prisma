@@ -20,7 +20,9 @@ model WorkRequest {
   budget      String
   description String
   category    String
+  fileURL     String?  // Stores the URL of the uploaded file
   userId      String?
   createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt  // This field auto-updates on every change
   user        User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
