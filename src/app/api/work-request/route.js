@@ -1,3 +1,4 @@
+// This file handles the creation of work requests in the application.
 import prisma from "@/libs/prisma";
 
 export const dynamic = 'force-dynamic';
@@ -10,9 +11,10 @@ export async function POST(request) {
       throw new TypeError("Invalid request payload");
     }
 
-    const { title, description, budget, category, fileURL } = requestData;
+    const { title, description, budget, category, fileURL, deadline, durationDays, userId } = requestData;
 
-    if (!title || !description || !budget || !category) {
+    // Basic validation
+    if (!title || !description || !budget || !category || !deadline || !userId) {
       return new Response(
         JSON.stringify({ error: "Missing required fields" }),
         { status: 400, headers: { "Content-Type": "application/json" } }
@@ -26,6 +28,9 @@ export async function POST(request) {
         budget: String(budget),
         category,
         fileURL: fileURL || null,
+        deadline: new Date(deadline),
+        durationDays: durationDays ?? null,
+        userId,
       },
     });
 

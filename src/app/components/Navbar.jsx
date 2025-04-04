@@ -1,117 +1,309 @@
-// 'use client'
+// "use client";
 
-// import Link from 'next/link'
-// import Image from 'next/image'
-// import { useState } from 'react'
-// import {Menu, X} from "lucide-react"
-// import { usePathname } from 'next/navigation'
-
-
-// const links = [
-//     {href:"/submissions", label:"all work request"},
-//     {href:"/my-work-request", label:"my work request"},
-//     {href:"/expert-profile", label:"expert profile"},
-//     {href:"/my-invites", label:"my invites"},
-//     {href:"/bidded-projects", label:"bidded projects"}
-// ]
-
+// import Link from "next/link";
+// import Image from "next/image";
+// import { useState, useEffect } from "react";
+// import { Menu, X, Moon, Sun } from "lucide-react";
+// import { usePathname } from "next/navigation";
+// import { useTheme } from "@/context/ThemeProvider";
+// import { useCurrentUser } from "@/hooks/useCurrentUser";
 
 // const Navbar = () => {
-//     // Checking if munu is open when in a small screen
-//     const [menuOpen, setMenuOpen] = useState(false)
+//   const [menuOpen, setMenuOpen] = useState(false);
+//   const pathname = usePathname();
+//   const { theme, toggleTheme } = useTheme();
+//   const { currentUser } = useCurrentUser(); // ✅ client-safe
 
-//     // Fetch current path link
-//     const pathname = usePathname()
+//   const [userRole, setUserRole] = useState(null);
 
-//     // Hide Navbar when in the homepage
-//   if (pathname === "/") return null;  
+//   useEffect(() => {
+//     setUserRole(currentUser?.role);
+//   }, [currentUser]);
+
+//   if (!currentUser || pathname === "/") return null;
+
+//   const links = [
+//     { href: "/submissions", label: "all work request" },
+//     ...(userRole === "COUNCIL"
+//       ? [
+//             { href: "/my-work-request", label: "my work request" },
+//             { href: "/expert-profile", label: "expert profile" },
+//             { href: "/invites", label: "invites" },
+//             { href: "/bids", label: "bidded projects" }
+//         ]
+//       : []),
+//     ...(userRole === "EXPERT"
+//       ? [
+//           { href: "/my-invites", label: "my invites" },
+//           { href: "/my-bids", label: "my bids" },
+//           { href: "/my-profile", label: "my profile" }
+//         ]
+//       : []),
+//   ];
 
 //   return (
-//     <nav className='bg-teal-50 py-1'>
-//         {/* Ensuring log is always at top and centered */}
-//         <div className=' flex items-center justify-center w-full my-2'>
-//             <Link href="/" className='flex items-center'>
-//                 <Image
-//                     src= "/assets/images/acts-logo.png"
-//                     loading="lazy"
-//                     alt="logo"
-//                     width={60}
-//                     height={30}
-//                 />
-//                 <h3 className='text-xl font-bold ml-3'>STI Policy HelpDesk</h3>
+//     <nav
+//       className={`py-1 transition duration-300 ${
+//         theme === "dark" ? "bg-gray-900 text-white" : "bg-teal-50 text-gray-800"
+//       }`}
+//     >
+//       {/* Logo */}
+//       <div className="flex items-center justify-center w-full my-2">
+//         <Link href="/" className="flex items-center">
+//           <Image src="/assets/images/acts-logo.png" alt="logo" width={60} height={30} />
+//           <h3 className="text-xl font-bold ml-3">STI Policy HelpDesk</h3>
+//         </Link>
+//       </div>
+
+//       {/* Mobile Menu & Theme Toggle */}
+//       <div className="flex justify-between items-center px-4">
+//         <button
+//           className="md:hidden text-gray-700 dark:text-white"
+//           onClick={() => setMenuOpen(!menuOpen)}
+//         >
+//           {menuOpen ? <X size={28} /> : <Menu size={28} />}
+//         </button>
+
+//         <button
+//           onClick={toggleTheme}
+//           className="p-2 rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600"
+//         >
+//           {theme === "dark" ? <Sun size={20} /> : <Moon size={20} />}
+//         </button>
+//       </div>
+
+//       {/* Links */}
+//       <div
+//         className={`${
+//           menuOpen ? "flex" : "hidden"
+//         } flex-col md:flex md:flex-row md:justify-center md:items-center md:space-x-8 px-6 pb-4 md:pb-0`}
+//       >
+//         {links.map((link) => {
+//           const isActive = pathname === link.href;
+//           return (
+//             <Link
+//               key={link.href}
+//               href={link.href}
+//               className={`capitalize font-semibold px-4 py-2 rounded-md transition ${
+//                 isActive
+//                   ? "bg-gray-200 text-teal-800 dark:bg-gray-800 dark:text-teal-400"
+//                   : "hover:bg-gray-100 hover:text-teal-600 dark:hover:bg-gray-700 dark:hover:text-teal-300"
+//               }`}
+//             >
+//               {link.label}
 //             </Link>
-//         </div>
-            
-//         {/* Navbar container */}
-//         <div>
-//             {/* menu button on small screens */}
-//             <button
-//                 className='md:hidden absolute right-4 top-3 text-gray-700'
-//                 onClick={() => setMenuOpen(!menuOpen)}
-//             >
-//                 {menuOpen ? <X size={28}/> : <Menu size={28} />}
-//             </button>
-
-//             {/* Menu links */}
-//             <div
-//                 // Conditional formating of menu based on screen size
-//                 className= {
-//                     `${menuOpen ? "flex" : "hidden"}
-//                     flex-col md:flex md:flex-row md:justify-center md:items-center md:space-x-8 px-6 pd-4 md:pb-0`
-//                 }
-//             >
-//                 {
-//                     links.map(link => {
-//                         const isActive = pathname === link.href 
-//                         return(
-//                             <Link
-//                                 key={link.href}
-//                                 href={link.href}
-//                                 // conditional formating the links
-//                                 className={`capitalize font-semibold text-gray-700 px-4 py-2 rounded-md transition ${
-//                                     isActive
-//                                     ? "bg-gray-200 text-teal-800" // Active Link Style
-//                                     : "hover:bg-gray-100 hover:text-teal-600"
-//                                 }`}
-//                             >
-//                                 {link.label}
-//                             </Link>
-//                     )})
-//                 }
-//             </div>
-//         </div>
-        
+//           );
+//         })}
+//       </div>
 //     </nav>
-//   )
-// }
+//   );
+// };
 
-// export default Navbar
+// export default Navbar;
+
+
+
+
+
+// "use client";
+
+// // 
+// import Link from "next/link";
+// import Image from "next/image";
+// import { useState, useEffect } from "react";
+// import { Menu, X, Moon, Sun, Bell } from "lucide-react";
+// import { usePathname } from "next/navigation";
+// import { useTheme } from "@/context/ThemeProvider";
+// import { useCurrentUser } from "@/hooks/useCurrentUser";
+
+// const Navbar = () => {
+//   const [menuOpen, setMenuOpen] = useState(false);
+//   const pathname = usePathname();
+//   const { theme, toggleTheme } = useTheme();
+//   const { currentUser } = useCurrentUser();
+
+//   const [userRole, setUserRole] = useState(null);
+
+//   useEffect(() => {
+//     setUserRole(currentUser?.role);
+//   }, [currentUser]);
+
+//   // Hide navbar when on the landing page
+//   if (!currentUser || pathname === "/") return null;
+
+//   const links = [
+//     { href: "/submissions", label: "all work request" },
+//     ...(userRole === "COUNCIL"
+//       ? [
+//           { href: "/my-work-request", label: "my work request" },
+//           { href: "/expert-profiles", label: "expert profiles" },          
+//           {
+//             label: "notifications",
+//             subLinks: [
+//               { href: "/invites", label: "invites", badge: 3 },
+//               { href: "/bids", label: "bidded projects", badge: 5 },
+//             ],
+//           },
+//           { href: "/my-profile", label: "my profile" }
+//         ]
+//       : []),
+//     ...(userRole === "EXPERT"
+//       ? [
+//           {
+//             label: "notifications",
+//             subLinks: [
+//               { href: "/my-invites", label: "my invites", badge: 2 },
+//               { href: "/my-bids", label: "my bids", badge: 4 },
+//             ],
+//           },
+//           { href: "/my-profile", label: "my profile" },
+//         ]
+//       : []),
+//   ];
+
+//   return (
+//     <nav
+//       className={`py-1 transition duration-300 ${
+//         theme === "dark" ? "bg-gray-900 text-white" : "bg-teal-50 text-gray-800"
+//       }`}
+//     >
+//       {/* Logo */}
+//       <div className="flex items-center justify-center w-full my-2">
+//         <Link href="/" className="flex items-center">
+//           <Image src="/assets/images/acts-logo.png" alt="logo" width={60} height={30} />
+//           <h3 className="text-xl font-bold ml-3">STI Policy HelpDesk</h3>
+//         </Link>
+//       </div>
+
+//       {/* Mobile Menu & Theme Toggle */}
+//       <div className="flex justify-between items-center px-4">
+//         <button
+//           className="md:hidden text-gray-700 dark:text-white"
+//           onClick={() => setMenuOpen(!menuOpen)}
+//         >
+//           {menuOpen ? <X size={28} /> : <Menu size={28} />}
+//         </button>
+
+//         <button
+//           onClick={toggleTheme}
+//           className="p-2 rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600"
+//         >
+//           {theme === "dark" ? <Sun size={20} /> : <Moon size={20} />}
+//         </button>
+//       </div>
+
+//       {/* Links */}
+//       <div
+//         className={`$${
+//           menuOpen ? "flex" : "hidden"
+//         } flex-col md:flex md:flex-row md:justify-center md:items-center md:space-x-8 px-6 pb-4 md:pb-0`}
+//       >
+//         {links.map((link, index) => {
+//           if (link.subLinks) {
+//             return (
+//               <div key={index} className="relative group">
+//                 <button className="capitalize font-semibold px-4 py-2 rounded-md transition flex items-center gap-2 hover:bg-gray-100 dark:hover:bg-gray-700">
+//                   <Bell size={18} /> {link.label}
+//                 </button>
+//                 <div className="absolute hidden group-hover:flex flex-col bg-white dark:bg-gray-800 rounded-md shadow-md mt-2 min-w-[150px] z-50">
+//                   {link.subLinks.map((sub) => (
+//                     <Link
+//                       key={sub.href}
+//                       href={sub.href}
+//                       className="px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 flex justify-between items-center"
+//                     >
+//                       <span>{sub.label}</span>
+//                       {sub.badge > 0 && (
+//                         <span className="ml-2 text-xs bg-red-500 text-white rounded-full px-2 py-0.5">
+//                           {sub.badge}
+//                         </span>
+//                       )}
+//                     </Link>
+//                   ))}
+//                 </div>
+//               </div>
+//             );
+//           } else {
+//             const isActive = pathname === link.href;
+//             return (
+//               <Link
+//                 key={link.href}
+//                 href={link.href}
+//                 className={`capitalize font-semibold px-4 py-2 rounded-md transition ${
+//                   isActive
+//                     ? "bg-gray-200 text-teal-800 dark:bg-gray-800 dark:text-teal-400"
+//                     : "hover:bg-gray-100 hover:text-teal-600 dark:hover:bg-gray-700 dark:hover:text-teal-300"
+//                 }`}
+//               >
+//                 {link.label}
+//               </Link>
+//             );
+//           }
+//         })}
+//       </div>
+//     </nav>
+//   );
+// };
+
+// export default Navbar;
+
 
 
 "use client";
 
 import Link from "next/link";
 import Image from "next/image";
-import { useState } from "react";
-import { Menu, X, Moon, Sun } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Menu, X, Moon, Sun, Bell } from "lucide-react";
 import { usePathname } from "next/navigation";
-import { useTheme } from "@/context/ThemeProvider"; // Import useTheme hook
-
-const links = [
-  { href: "/submissions", label: "all work request" },
-  { href: "/my-work-request", label: "my work request" },
-  { href: "/expert-profile", label: "expert profile" },
-  { href: "/my-invites", label: "my invites" },
-  { href: "/bidded-projects", label: "bidded projects" },
-];
+import { useTheme } from "@/context/ThemeProvider";
+import { useCurrentUser } from "@/hooks/useCurrentUser";
 
 const Navbar = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const pathname = usePathname();
+  const { theme, toggleTheme } = useTheme();
+  const { currentUser } = useCurrentUser();
+  const [userRole, setUserRole] = useState(null);
+  const [showDropdown, setShowDropdown] = useState(false);
 
-  const { theme, toggleTheme } = useTheme(); // Get theme state and toggle function
+  useEffect(() => {
+    setUserRole(currentUser?.role);
+  }, [currentUser]);
 
-  if (pathname === "/") return null;
+  if (!currentUser || pathname === "/") return null;
+
+  // Notification counts
+  const councilSubLinks = [
+    { href: "/invites", label: "invites", badge: 3 },
+    { href: "/bids", label: "bidded projects", badge: 5 },
+  ];
+  const expertSubLinks = [
+    { href: "/my-invites", label: "my invites", badge: 2 },
+    { href: "/my-bids", label: "my bids", badge: 4 },
+  ];
+
+  const notificationSubLinks = userRole === "COUNCIL" ? councilSubLinks : userRole === "EXPERT" ? expertSubLinks : [];
+  const totalNotifications = notificationSubLinks.reduce((sum, sub) => sum + sub.badge, 0);
+
+  const links = [
+    { href: "/submissions", label: "all work request" },
+    ...(userRole === "COUNCIL"
+      ? [
+          { href: "/my-work-request", label: "my work request" },
+          { href: "/expert-profiles", label: "expert profiles" },
+        ]
+      : []),
+    ...(userRole === "EXPERT"
+      ? []
+      : []),
+    {
+      label: "notifications",
+      subLinks: notificationSubLinks,
+      badge: totalNotifications,
+    },
+    { href: "/my-profile", label: "my profile" },
+  ];
 
   return (
     <nav
@@ -119,26 +311,16 @@ const Navbar = () => {
         theme === "dark" ? "bg-gray-900 text-white" : "bg-teal-50 text-gray-800"
       }`}
     >
-    
-      {/* Logo Section */}
+      {/* Logo */}
       <div className="flex items-center justify-center w-full my-2">
         <Link href="/" className="flex items-center">
-          <Image
-            src="/assets/images/acts-logo.png"
-            loading="lazy"
-            alt="logo"
-            width={60}
-            height={30}
-          />
+          <Image src="/assets/images/acts-logo.png" alt="logo" width={60} height={30} />
           <h3 className="text-xl font-bold ml-3">STI Policy HelpDesk</h3>
         </Link>
       </div>
 
-
-
-      {/* Navbar Container */}
+      {/* Mobile Menu & Theme Toggle */}
       <div className="flex justify-between items-center px-4">
-        {/* Mobile Menu Button */}
         <button
           className="md:hidden text-gray-700 dark:text-white"
           onClick={() => setMenuOpen(!menuOpen)}
@@ -146,36 +328,88 @@ const Navbar = () => {
           {menuOpen ? <X size={28} /> : <Menu size={28} />}
         </button>
 
-        {/* Dark Mode Toggle Button */}
         <button
           onClick={toggleTheme}
-          className="p-2 rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 transition duration-300"
+          className="p-2 rounded-full bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600"
         >
           {theme === "dark" ? <Sun size={20} /> : <Moon size={20} />}
         </button>
       </div>
 
-      {/* Menu Links */}
+      {/* Links */}
       <div
         className={`${
           menuOpen ? "flex" : "hidden"
         } flex-col md:flex md:flex-row md:justify-center md:items-center md:space-x-8 px-6 pb-4 md:pb-0`}
       >
-        {links.map((link) => {
-          const isActive = pathname === link.href;
-          return (
-            <Link
-              key={link.href}
-              href={link.href}
-              className={`capitalize font-semibold px-4 py-2 rounded-md transition ${
-                isActive
-                  ? "bg-gray-200 text-teal-800 dark:bg-gray-800 dark:text-teal-400"
-                  : "hover:bg-gray-100 hover:text-teal-600 dark:hover:bg-gray-700 dark:hover:text-teal-300"
-              }`}
-            >
-              {link.label}
-            </Link>
-          );
+        {links.map((link, index) => {
+          if (link.subLinks) {
+            return (            
+            <div
+                key={index}
+                className="relative"
+                onMouseEnter={() => setShowDropdown(true)}
+                onMouseLeave={() => setShowDropdown(false)}
+                >
+                {/* Trigger */}
+                <button
+                    onClick={() => setShowDropdown((prev) => !prev)}
+                    className="capitalize font-semibold px-4 py-2 rounded-md transition flex items-center gap-2
+                            hover:text-teal-600 dark:hover:text-teal-400 
+                            hover:bg-gray-100 dark:hover:bg-gray-700 relative"
+                >
+                    <Bell size={18} />
+                    {link.label}
+                    {link.badge > 0 && (
+                    <span className="absolute -top-1 -right-2 text-xs bg-red-600 text-white rounded-full px-1.5">
+                        {link.badge}
+                    </span>
+                    )}
+                </button>
+
+                {/* Dropdown: NO margin between button & dropdown */}
+                {showDropdown && (
+                    <div
+                    className="absolute left-0 top-full w-max bg-white dark:bg-gray-800 rounded-md shadow-lg z-50"
+                    >
+                    {link.subLinks.map((sub) => (
+                        <Link
+                        key={sub.href}
+                        href={sub.href}
+                        className="flex justify-between items-center px-4 py-2 text-sm text-gray-800 dark:text-white
+                                    hover:bg-gray-100 dark:hover:bg-gray-700 
+                                    hover:text-teal-600 dark:hover:text-teal-300"
+                        >
+                        <span>{sub.label}</span>
+                        {sub.badge > 0 && (
+                            <span className="ml-2 text-xs bg-red-500 dark:bg-red-600 text-white rounded-full px-2 py-0.5">
+                            {sub.badge}
+                            </span>
+                        )}
+                        </Link>
+                    ))}
+                    </div>
+                )}
+            </div>
+
+           
+        );
+          } else {
+            const isActive = pathname === link.href;
+            return (
+              <Link
+                key={link.href}
+                href={link.href}
+                className={`capitalize font-semibold px-4 py-2 rounded-md transition ${
+                  isActive
+                    ? "bg-gray-200 text-teal-800 dark:bg-gray-800 dark:text-teal-400"
+                    : "hover:bg-gray-100 hover:text-teal-600 dark:hover:bg-gray-700 dark:hover:text-teal-300"
+                }`}
+              >
+                {link.label}
+              </Link>
+            );
+          }
         })}
       </div>
     </nav>

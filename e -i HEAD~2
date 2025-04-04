@@ -1,0 +1,65 @@
+[33mcommit 4f735b75e9cc4705476e831ac4866eee2ae34500[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m)[m
+Author: Admin <wambugudani@gmail.com>
+Date:   Fri Apr 4 14:31:44 2025 +0300
+
+    Added Notification UI Feature
+
+[33mcommit 661aa9dd6d5674eae05e1733274e16b04b7fa433[m
+Author: Admin <wambugudani@gmail.com>
+Date:   Fri Apr 4 14:06:40 2025 +0300
+
+    Added Notification UI Feature
+
+[33mcommit 5cc771bf52439fe2cc88db557a3fa2f115fa304d[m
+Author: Admin <wambugudani@gmail.com>
+Date:   Fri Apr 4 13:58:15 2025 +0300
+
+    Added Notification UI Feature
+
+[33mcommit e38131cfbc8a2b6f844469d62f97c2ae9ad285e9[m
+Author: Admin <wambugudani@gmail.com>
+Date:   Fri Apr 4 07:33:43 2025 +0300
+
+    Completed datacard modal which is user role based
+
+[33mcommit db29dfb036f7240c562adc0c142964ca4bba4c2b[m[33m ([m[1;31morigin/main[m[33m)[m
+Author: Admin <wambugudani@gmail.com>
+Date:   Tue Apr 1 11:30:31 2025 +0300
+
+    Added the Add work request feature
+
+[33mcommit 2ab97d9b4e81a0591053bb2878f17dfa0ade8e28[m
+Author: Admin <wambugudani@gmail.com>
+Date:   Tue Apr 1 11:29:04 2025 +0300
+
+    Added the Add work request feature
+
+[33mcommit a5735adb9e09ccf4a0181a4e5d6a50d49e18955a[m
+Author: Admin <wambugudani@gmail.com>
+Date:   Tue Apr 1 11:24:48 2025 +0300
+
+    Added the Add work request feature
+
+[33mcommit 3cddb6465db36cf2ebe320ade9ffaf93a1fb19da[m
+Author: Daniel Wambugu <wambugudani@gmail.com>
+Date:   Sun Mar 30 23:27:36 2025 +0300
+
+    Added Dark mode, Work edit and File Upload
+
+[33mcommit b7ab0be039a3dfb910a0bb8ab26746726da966e5[m
+Author: Admin <wambugudani@gmail.com>
+Date:   Fri Mar 28 20:32:20 2025 +0300
+
+    Work-in-progress to fix the form
+
+[33mcommit 2c934e4e83ca7d60bac36e17a239740891949044[m
+Author: Admin <wambugudani@gmail.com>
+Date:   Mon Mar 17 08:24:17 2025 +0300
+
+    Modified to use SQLITE
+
+[33mcommit cae456fa8dacea4c77c44d8790799613b9d7cfad[m
+Author: Admin <wambugudani@gmail.com>
+Date:   Sun Mar 16 12:14:22 2025 +0300
+
+    Fresh start

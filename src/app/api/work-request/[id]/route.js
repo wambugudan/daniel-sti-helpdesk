@@ -3,7 +3,7 @@ import prisma from "@/libs/prisma";
 
 export const dynamic = 'force-dynamic';
 
-// API for handling GET Requests
+// API for handling GET Work Request to be edited
 export async function GET(request, context) {
   try {
     const params = await context.params; 
@@ -38,29 +38,20 @@ export async function GET(request, context) {
   }
 }
 
-// API for handling PUT Requests
+// API for handling POST Requests
 export async function PUT(request, context) {
   try {
-    const params = await context.params; 
-    const { id } = params;
-
-
-    if (!id) {
-      throw new Error("Missing or invalid ID in request parameters");
-    }
+    const { id } = context.params;
+    if (!id) throw new Error("Missing or invalid ID in request parameters");
 
     const requestData = await request.json();
     if (!requestData || typeof requestData !== "object") {
       throw new TypeError("Invalid request payload");
     }
 
-    console.log("Incoming PUT request data:", requestData);
-    console.log("Updating work request with ID:", id);
+    const { title, description, budget, category, fileURL, deadline, durationDays, userId } = requestData;
 
-    const { title, description, budget, category, fileURL } = requestData;
-
-    // Validate fields before updating
-    if (!title || !description || !budget || !category) {
+    if (!title || !description || !budget || !category || !deadline || !userId) {
       throw new Error("Missing required fields in request payload");
     }
 
@@ -69,10 +60,12 @@ export async function PUT(request, context) {
       data: {
         title,
         description,
-        // budget: parseFloat(budget), // Ensure budget is a number
-        budget: String(budget), // Convert budget to a string
+        budget: String(budget),
         category,
-        fileURL: fileURL || undefined, // Use undefined if fileURL is null or empty
+        fileURL: fileURL || null,
+        deadline: new Date(deadline),
+        durationDays: durationDays ?? null,
+        userId,
       },
     });
 
@@ -88,6 +81,7 @@ export async function PUT(request, context) {
     );
   }
 }
+
 
 
 // API for handling DELETE Requests

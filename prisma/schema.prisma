@@ -11,18 +11,79 @@ model User {
   id           String        @id @default(cuid())
   name         String
   email        String        @unique
-  workRequests WorkRequest[]
+  role         Role
+
+  // Work requests created by the user (Council)
+  workRequests WorkRequest[] @relation("UserWorkRequests")
+
+  // Bids placed by the expert
+  bids         Bid[] @relation("UserBids")
+
+  // Invites sent by the Council
+  sentInvites  Invite[] @relation("CouncilInvites")
+
+  // Invites received by an expert
+  receivedInvites Invite[] @relation("ExpertInvites")
 }
 
 model WorkRequest {
-  id          String   @id @default(uuid())
+  id          String    @id @default(uuid())
   title       String
   budget      String
   description String
   category    String
-  fileURL     String?  // Stores the URL of the uploaded file
+  fileURL     String?
   userId      String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt  // This field auto-updates on every change
-  user        User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  deadline    DateTime
+  durationDays Int?     // Optional: Used for calculating deadline
+
+  // Relation to User (Council)
+  user        User? @relation("UserWorkRequests", fields: [userId], references: [id], onDelete: Cascade)
+
+  // Bids placed on this work request
+  bids        Bid[] @relation("WorkRequestBids")
+
+  // Invites related to this work request
+  invites     Invite[] @relation("WorkRequestInvites")
+}
+
+model Bid {
+  id            String   @id @default(cuid())
+  userId        String
+  workRequestId String
+  amount        Float
+  message       String?
+  createdAt     DateTime @default(now())
+
+  // Relations
+  user        User        @relation("UserBids", fields: [userId], references: [id], onDelete: Cascade)
+  workRequest WorkRequest @relation("WorkRequestBids", fields: [workRequestId], references: [id], onDelete: Cascade)
+}
+
+model Invite {
+  id            String   @id @default(uuid())
+  message       String?
+  status        InviteStatus @default(PENDING)
+  councilId     String
+  expertId      String
+  workRequestId String
+  createdAt     DateTime @default(now())
+
+  // Relations
+  council     User        @relation("CouncilInvites", fields: [councilId], references: [id], onDelete: Cascade)
+  expert      User        @relation("ExpertInvites", fields: [expertId], references: [id], onDelete: Cascade)
+  workRequest WorkRequest @relation("WorkRequestInvites", fields: [workRequestId], references: [id], onDelete: Cascade)
+}
+
+enum Role {
+  COUNCIL
+  EXPERT
+}
+
+enum InviteStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
 }

@@ -1,5 +1,7 @@
 import { useRouter } from "next/navigation";
 import { useTheme } from "@/context/ThemeProvider";
+import { useState } from "react";
+import WorkRequestModal from "./WorkRequestModal"; 
 import { FaFilePdf, FaFileWord, FaFileImage, FaFileAlt } from "react-icons/fa";
 
 const getFileIcon = (fileURL) => {
@@ -22,9 +24,15 @@ const getFileIcon = (fileURL) => {
   }
 };
 
-const DataCard = ({ workRequest }) => {
+const DataCard = ({ workRequest, currentUser, onView }) => {
+  const isOwner = currentUser?.id === workRequest.userId;
+  const isCouncil = currentUser?.role === "COUNCIL";
+  const isExpert = currentUser?.role === "EXPERT";
+
   const { theme } = useTheme();
   const router = useRouter(); 
+  // const [showModal, setShowModal] = useState(false);
+
 
   // Function to Handle Delete Task
   const handleDelete = async (id) => {
@@ -38,6 +46,16 @@ const DataCard = ({ workRequest }) => {
     }
   };
 
+  // Calculate duration in days
+  const duration =
+  workRequest.deadline && workRequest.createdAt
+    ? Math.ceil(
+        (new Date(workRequest.deadline) - new Date(workRequest.createdAt)) /
+          (1000 * 60 * 60 * 24)
+      )
+    : null;
+
+
   return (
     <div
       className={`shadow-lg rounded-lg p-4 w-full sm:w-3/4 md:w-4/5 lg:w-4/5 xl:w-2/3 mx-auto transition-transform duration-300 hover:scale-105 hover:shadow-lg ${
@@ -45,15 +63,28 @@ const DataCard = ({ workRequest }) => {
       }`}
     >
       {/* Display username */}
-      <h4 className="text-sm font-semibold">{workRequest.userId}</h4>
+      {/* <h4 className="text-sm font-semibold">{workRequest.userId}</h4> */}
+      <h4 className="text-sm font-semibold">
+        {workRequest.user?.name || workRequest.user?.email || 'Unknown User'}
+      </h4>
 
       {/* Task Title */}
       <h3 className="text-lg font-bold">{workRequest.title}</h3>
 
       {/* Display Budget */}
       <h3 className="text-sm mt-1">
-        Budget: <span className="font-medium text-green-400">{workRequest.budget}</span>
+        Budget: <span className="font-medium text-green-400">$ {workRequest.budget}</span>
       </h3>
+
+      {/* Display WorkRequest Duration */}
+      {/* <h3 className="text-sm mt-1">
+        Duration: <span className="font-medium text-yellow-500">{workRequest.durationDays ?? 'N/A'} days</span>
+      </h3> */}
+
+      <h3 className="text-sm mt-1">
+        Duration: <span className="font-medium text-yellow-500">{duration ?? 'N/A'} days</span>
+      </h3>
+
 
       {/* Description preview (first 50 words) */}
       <p className="text-sm mt-2">
@@ -86,6 +117,7 @@ const DataCard = ({ workRequest }) => {
       </button>
 
       {/* Edit and Delete Buttons */}
+      {isCouncil && isOwner && (
       <div className="mt-4 flex gap-3">
         <button
           onClick={() => router.push(`/work-request/${workRequest.id}`)}
@@ -105,8 +137,24 @@ const DataCard = ({ workRequest }) => {
           Delete
         </button>
       </div>
+      )}
+
+      {/* View Details Button */}
+      {/* <br />   */}
+      <div className="mt-4 flex justify-end">
+        <button
+          onClick={() => onView(workRequest)}
+          className={`mt-4 px-3 py-1 text-sm font-medium rounded-md ${
+            theme === "dark" ? "bg-blue-600 hover:bg-blue-500 text-white" : "bg-blue-500 hover:bg-blue-400 text-white"
+          }`}
+        >
+          View Details
+        </button>
+      </div>
     </div>
+    
   );
+
 };
 
 export default DataCard;

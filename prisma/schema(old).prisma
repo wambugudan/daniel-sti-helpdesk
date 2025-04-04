@@ -1,0 +1,103 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// model User {
+//   id           String        @id @default(cuid())
+//   name         String
+//   email        String        @unique
+//   workRequests WorkRequest[]
+// }
+
+
+// model WorkRequest {
+//   id          String   @id @default(uuid())
+//   title       String
+//   budget      String
+//   description String
+//   category    String
+//   fileURL     String?  // Stores the URL of the uploaded file
+//   userId      String?
+//   createdAt   DateTime @default(now())
+//   updatedAt   DateTime @updatedAt  // This field auto-updates on every change
+//   user        User?    @relation(fields: [userId], references: [id], onDelete: Cascade)
+// }
+
+
+model User {
+  id           String         @id @default(cuid())
+  name         String
+  email        String         @unique
+  role         Role           // @default("council") // "council" or "expert"
+  workRequests WorkRequest[]  @relation("UserWorkRequests") // Requests created by the user
+  bids         Bid[]          @relation("UserBids") // Bids placed by an expert
+  invites      Invite[]       @relation("UserInvites") // Invites received by an expert
+}
+
+model WorkRequest {
+  id          String    @id @default(uuid())
+  title       String
+  budget      String
+  description String
+  category    String
+  fileURL     String?
+  userId      String?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+  user        User?     @relation("UserWorkRequests", fields: [userId], references: [id], onDelete: Cascade)
+  bids        Bid[]     @relation("WorkRequestBids") // Bids placed on this request
+  invites     Invite[]  @relation("WorkRequestInvites") // Experts invited to bid
+}
+
+model Bid {
+  id            String   @id @default(cuid())
+  userId        String
+  workRequestId String
+  amount        String
+  message       String
+  createdAt     DateTime @default(now())
+
+  user          User      @relation("UserBids", fields: [userId], references: [id], onDelete: Cascade)
+  workRequest   WorkRequest @relation("WorkRequestBids", fields: [workRequestId], references: [id], onDelete: Cascade)
+}
+
+// model Invite1 {
+//   id            String   @id @default(cuid())
+//   userId        String
+//   workRequestId String
+//   status        String   @default("pending") // "pending", "accepted", "declined"
+//   createdAt     DateTime @default(now())
+
+//   user          User      @relation("UserInvites", fields: [userId], references: [id], onDelete: Cascade)
+//   workRequest   WorkRequest @relation("WorkRequestInvites", fields: [workRequestId], references: [id], onDelete: Cascade)
+// }
+
+model Invite {
+  id            String   @id @default(uuid())
+  message       String?
+  status        InviteStatus @default(PENDING)
+  councilId     String
+  expertId      String
+  workRequestId String
+  createdAt     DateTime @default(now())
+
+  council       User        @relation(fields: [councilId], references: [id], onDelete: Cascade)
+  expert        User        @relation(fields: [expertId], references: [id], onDelete: Cascade)
+  workRequest   WorkRequest @relation(fields: [workRequestId], references: [id], onDelete: Cascade)
+}
+
+enum Role {
+  COUNCIL
+  EXPERT
+}
+
+enum InviteStatus {
+  PENDING
+  ACCEPTED
+  REJECTED
+}

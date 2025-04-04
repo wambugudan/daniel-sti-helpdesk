@@ -17,6 +17,9 @@
 /.next/
 /out/
 
+# Uploads folder
+# /uploads
+
 # production
 /build
 

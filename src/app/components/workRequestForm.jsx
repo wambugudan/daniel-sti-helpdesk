@@ -6,6 +6,8 @@ import { useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import { useTheme } from "@/context/ThemeProvider";
 import toast, { Toaster } from "react-hot-toast";
+import { useCurrentUser } from '@/hooks/useCurrentUser';
+
 
 const WorkRequestForm = ({ requestId }) => {
   const router = useRouter();
@@ -20,6 +22,7 @@ const WorkRequestForm = ({ requestId }) => {
   } = useForm();
   const [loading, setLoading] = useState(false);
   const [editing, setEditing] = useState(false);
+  const { currentUser } = useCurrentUser();
 
   // Check if editing an existing request
   useEffect(() => {
@@ -42,39 +45,7 @@ const WorkRequestForm = ({ requestId }) => {
     }
   };
 
-  // Handle form submission
-  // const onSubmit = async (data) => {
-  //   setLoading(true);
-  //   toast.loading(editing ? "Updating work request..." : "Submitting work request");
-
-  //   const workRequest = {
-  //     title: data.title,
-  //     description: data.description,
-  //     budget: parseFloat(data.budget),
-  //     category: data.category,
-  //     fileURL: data.file && data.file[0] ? await uploadFile(data.file[0]) : data.fileURL || "",
-  //   };
-
-  //   try {
-  //     const response = await fetch(`/api/work-request/${editing ? requestId : ""}`, {
-  //       method: editing ? "PUT" : "POST",
-  //       headers: { "Content-Type": "application/json" },
-  //       body: JSON.stringify(workRequest),
-  //     });
-
-  //     if (!response.ok) throw new Error("Failed to process request");
-
-  //     toast.dismiss();
-  //     toast.success(editing ? "Work request updated!" : "Work request submitted!");
-  //     router.push("/submissions");
-  //   } catch (error) {
-  //     toast.dismiss();
-  //     toast.error("Failed to process request!");
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
-
+  
   const onSubmit = async (data) => {
     setLoading(true);
     toast.loading(editing ? "Updating work request..." : "Submitting work request");
@@ -82,12 +53,23 @@ const WorkRequestForm = ({ requestId }) => {
     try {
       const fileURL = data.file && data.file[0] ? await uploadFile(data.file[0]) : data.fileURL || "";
   
+      // const workRequest = {
+      //   title: data.title,
+      //   description: data.description,
+      //   budget: parseFloat(data.budget),
+      //   category: data.category,
+      //   fileURL,
+      // };
+
       const workRequest = {
         title: data.title,
         description: data.description,
-        budget: parseFloat(data.budget),
+        budget: data.budget.toString(), // convert number to string here
         category: data.category,
         fileURL,
+        deadline: new Date(data.deadline),
+        durationDays: data.durationDays || null,
+        userId: currentUser?.id,
       };
   
       // Adjust the API route based on whether we're editing or creating a new request
@@ -193,6 +175,27 @@ const WorkRequestForm = ({ requestId }) => {
             className="border rounded-md px-3 py-2 w-full"
           />
           {errors.category && <p className="text-red-500">{errors.category.message}</p>}
+        </div>
+
+        <div>
+          <label htmlFor="deadline" className="block font-medium">Deadline</label>
+          <input
+            id="deadline"
+            type="date"
+            {...register("deadline", { required: "Deadline is required" })}
+            className="border rounded-md px-3 py-2 w-full"
+          />
+          {errors.deadline && <p className="text-red-500">{errors.deadline.message}</p>}
+        </div>
+
+        <div>
+          <label htmlFor="durationDays" className="block font-medium">Estimated Duration (in days)</label>
+          <input
+            id="durationDays"
+            type="number"
+            {...register("durationDays", { valueAsNumber: true })}
+            className="border rounded-md px-3 py-2 w-full"
+          />
         </div>
 
         <div>
