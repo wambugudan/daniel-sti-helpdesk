@@ -1,6 +1,4 @@
-// File: src/app/submissions/page.js
-// This component fetches and displays work requests.
-// It includes pagination, and a button to add new work requests.
+// File: src/app/my-work-request/page.js
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -9,8 +7,8 @@ import DataCard from "../components/DataCard";
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import WorkRequestModal from "../components/WorkRequestModal";
 
-const Submissions = () => {
-  const { currentUser, setCurrentUser, allUsers } = useCurrentUser();
+const MyWorkRequest = () => {
+  const { currentUser } = useCurrentUser();
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -25,7 +23,6 @@ const Submissions = () => {
   const initialPage = parseInt(searchParams.get("page")) || 1;
   const [page, setPage] = useState(initialPage);
 
-  // Sync URL with current page
   useEffect(() => {
     router.replace(`?page=${page}`);
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -35,60 +32,30 @@ const Submissions = () => {
     const fetchWorkRequests = async () => {
       setLoading(true);
       try {
-        const res = await fetch(`/api/workRequests?page=${page}&limit=${limit}`);
+        const res = await fetch(`/api/my-work-requests?userId=${currentUser.id}&page=${page}&limit=${limit}`);
         if (!res.ok) throw new Error("Failed to fetch work requests");
 
-        const { data, pagination } = await res.json();
+        const { data, total } = await res.json();
         setWorkRequests(data);
-        setTotalPages(pagination.totalPages);
+        setTotalPages(Math.ceil(total / limit));
         setError(null);
       } catch (err) {
-        console.error("Error fetching work requests:", err);
+        console.error("Error fetching my work requests:", err);
         setError(err.message);
       } finally {
         setLoading(false);
       }
     };
 
-    fetchWorkRequests();
-  }, [page, limit]);
+    if (currentUser?.id) fetchWorkRequests();
+  }, [currentUser, page, limit]);
 
   return (
     <div className="container mx-auto my-6 px-4 md:px-6 lg:px-8">
       {error && <p className="text-red-500">Error: {error}</p>}
 
-      {/* 🔁 Switch User Dropdown */}
-      <div className="mb-6 flex items-center gap-4">
-        <label className="text-sm font-medium">Switch User:</label>
-        <select
-          className="border px-3 py-1 rounded"
-          value={currentUser.id}
-          onChange={(e) => {
-            const selected = allUsers.find(user => user.id === e.target.value);
-            setCurrentUser(selected);
-          }}
-        >
-          {allUsers.map(user => (
-            <option key={user.id} value={user.id}>
-              {user.name} ({user.role})
-            </option>
-          ))}
-        </select>
-      </div>
+      <h2 className="text-xl font-semibold mb-6">My Work Requests</h2>
 
-      {/* Add Work Request Button */}
-      {currentUser.role === 'COUNCIL' && (
-        <div className="flex justify-end mb-6">
-          <button
-            onClick={() => router.push('/new-work-request')}
-            className="bg-primary text-white font-medium px-6 py-2 rounded-md shadow-md hover:bg-primary-dark transition"
-          >
-            + Add New Work Request
-          </button>
-        </div>
-      )}
-
-      {/* Work Requests */}
       {loading ? (
         <div className="text-center py-10 text-gray-500 text-sm">Loading work requests...</div>
       ) : (
@@ -139,7 +106,6 @@ const Submissions = () => {
         </button>
       </div>
 
-      {/* Modal */}
       {selectedRequest && (
         <WorkRequestModal
           workRequest={selectedRequest}
@@ -155,5 +121,4 @@ const Submissions = () => {
   );
 };
 
-export default Submissions;
-
+export default MyWorkRequest;

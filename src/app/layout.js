@@ -1,7 +1,7 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Footer from "./components/Footer";
-// import Navbar from "./components/Navbar(Working)";
+import ClientOnly from "./components/ClientOnly";
 import Navbar from "./components/Navbar"; // Import Navbar component
 import { ThemeProvider } from "@/context/ThemeProvider"; // Import ThemeProvider
 
@@ -38,14 +38,20 @@ export default function RootLayout({ children }) {
           <div className="flex flex-col min-h-screen">
 
             {/*  Navbar */}
-            <Navbar />
+            {/* Wraping with ClientOnly to allow for hydration */}
+            <ClientOnly>
+              <Navbar />
+            </ClientOnly>            
             
             <main className="flex-grow container mx-auto px-4 md:px-6 lg:px-8">
               {children}
             </main> 
             
             {/* Footer */}
-            <Footer />
+            {/* Wraping with ClientOnly to allow for hydration */}
+            <ClientOnly>
+              <Footer />
+            </ClientOnly>
           </div>
         </ThemeProvider>
       </body>
