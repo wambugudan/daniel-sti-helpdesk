@@ -5,6 +5,9 @@ import { useRouter } from "next/navigation";
 import { useTheme } from "@/context/ThemeProvider";
 import { FaFilePdf, FaFileWord, FaFileImage, FaFileAlt } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
+import toast from "react-hot-toast";
+
+
 
 const getFileIcon = (fileURL) => {
   if (!fileURL) return <FaFileAlt className="text-gray-500 text-2xl" />;
@@ -26,6 +29,8 @@ const WorkRequestModal = ({ workRequest, currentUser, onClose, onDeleted }) => {
   const [bidAmount, setBidAmount] = useState("");
   const [bidMessage, setBidMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [existingBid, setExistingBid] = useState(null);
+
 
   const isOwner = currentUser?.id === workRequest.userId;
   const isCouncil = currentUser?.role === "COUNCIL";
@@ -44,10 +49,100 @@ const WorkRequestModal = ({ workRequest, currentUser, onClose, onDeleted }) => {
     }
   };
 
+  // const handleBidSubmit = async () => {
+  //   if (!bidAmount) return alert("Bid amount is required");
+  
+  //   setIsSubmitting(true);
+  
+  //   try {
+  //     const response = await fetch("/api/bid", {
+  //       method: "POST",
+  //       headers: { "Content-Type": "application/json" },
+  //       body: JSON.stringify({
+  //         userId: currentUser.id,
+  //         workRequestId: workRequest.id,
+  //         amount: parseFloat(bidAmount),
+  //         message: bidMessage,
+  //       }),
+  //     });
+  
+  //     if (!response.ok) throw new Error("Failed to place bid");
+  
+  //     toast.success("Bid placed successfully!");
+  //     setBidAmount("");
+  //     setBidMessage("");
+  //   } catch (error) {
+  //     toast.error("Error placing bid");
+  //     console.error(error);
+  //   } finally {
+  //     setIsSubmitting(false);
+  //   }
+  // };
+  
+
+  // const handleBidSubmit = async () => {
+  //   setIsSubmitting(true);
+  //   try {
+  //     const response = await fetch("/api/bids", {
+  //       method: "POST",
+  //       headers: { "Content-Type": "application/json" },
+  //       body: JSON.stringify({
+  //         userId: currentUser.id,
+  //         workRequestId: workRequest.id,
+  //         amount: parseFloat(bidAmount),
+  //         message: bidMessage,
+  //       }),
+  //     });
+  //     if (!response.ok) throw new Error("Failed to submit bid");
+  //     alert("Bid submitted!");
+  //     onClose();
+  //   } catch (error) {
+  //     alert("Error submitting bid.");
+  //   } finally {
+  //     setIsSubmitting(false);
+  //   }
+  // };
+
+
+  // const handleBidSubmit = async () => {
+  //   if (!bidAmount) return toast.error("Bid amount is required");
+  
+  //   setIsSubmitting(true);
+  
+  //   try {
+  //     const response = await fetch("/api/bid", {
+  //       method: "POST",
+  //       headers: { "Content-Type": "application/json" },
+  //       body: JSON.stringify({
+  //         userId: currentUser.id,
+  //         workRequestId: workRequest.id,
+  //         amount: parseFloat(bidAmount),
+  //         message: bidMessage,
+  //       }),
+  //     });
+  
+  //     if (!response.ok) throw new Error("Failed to place bid");
+  
+  //     toast.success("Bid placed successfully!");
+  //     setBidAmount("");
+  //     setBidMessage("");
+  //     onClose(); // 👈 if you want to close modal after success
+  //   } catch (error) {
+  //     toast.error("Error placing bid");
+  //     console.error(error);
+  //   } finally {
+  //     setIsSubmitting(false);
+  //   }
+  // };
+
+
   const handleBidSubmit = async () => {
+    if (!bidAmount) return alert("Bid amount is required");
+  
     setIsSubmitting(true);
+  
     try {
-      const response = await fetch("/api/bids", {
+      const response = await fetch("/api/bid", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -57,15 +152,24 @@ const WorkRequestModal = ({ workRequest, currentUser, onClose, onDeleted }) => {
           message: bidMessage,
         }),
       });
-      if (!response.ok) throw new Error("Failed to submit bid");
-      alert("Bid submitted!");
-      onClose();
+  
+      if (!response.ok) throw new Error("Failed to place bid");
+  
+      toast.success("Bid placed successfully!");
+      setBidAmount("");
+      setBidMessage("");
+  
+      // 🔁 Re-fetch the bid to reflect in UI
+      await fetchExistingBid();
     } catch (error) {
-      alert("Error submitting bid.");
+      toast.error("Error placing bid");
+      console.error(error);
     } finally {
       setIsSubmitting(false);
     }
   };
+  
+  
 
   const duration =
     workRequest.deadline && workRequest.createdAt
@@ -89,6 +193,27 @@ const WorkRequestModal = ({ workRequest, currentUser, onClose, onDeleted }) => {
     };
   }, [onClose]);
 
+
+  // Fetching existing bid
+  const fetchExistingBid = async () => {
+    const res = await fetch("/api/check-bid", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ userId: currentUser.id, workRequestId: workRequest.id }),
+    });
+  
+    const { bid } = await res.json();
+    setExistingBid(bid);
+  };
+
+  // Fetch existing bid for expert user
+  useEffect(() => {
+    if (isExpert) fetchExistingBid();
+  }, [currentUser.id, workRequest.id]);
+  
+  
+  
+
   return (
     <AnimatePresence>
       <motion.div
@@ -96,40 +221,47 @@ const WorkRequestModal = ({ workRequest, currentUser, onClose, onDeleted }) => {
         animate={{ opacity: 1 }}
         exit={{ opacity: 0 }}
         transition={{ duration: 0.2 }}
-        className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex justify-center items-center z-50"
+        className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex justify-center items-center z-50 overflow-y-auto"
       >
         <motion.div
           initial={{ scale: 0.9, y: 40 }}
           animate={{ scale: 1, y: 0 }}
           exit={{ scale: 0.9, y: 40 }}
           transition={{ duration: 0.2 }}
-        //   className="bg-white rounded-lg shadow-lg max-w-lg w-full p-6 relative"
-          className={`rounded-lg shadow-lg max-w-lg w-full p-6 relative ${
+          className={`rounded-lg shadow-lg w-full max-w-md sm:max-w-lg md:max-w-xl lg:max-w-2xl p-6 relative ${
             theme === 'dark' ? 'bg-gray-900 text-white' : 'bg-white text-gray-900'
           }`}
+          style={{ maxHeight: "90vh", overflowY: "auto" }} // Allow for scrolling the model
           
         >
-          <button
-            onClick={onClose}
-            // className="absolute top-2 right-4 text-gray-500 hover:text-red-500 text-lg"
-            className={`absolute top-2 right-4 ${theme === "dark" ? "text-gray-300" : "text-gray-700"} hover:text-red-500 text-lg`}
+          <div className="sticky top-0 z-20 bg-inherit pb-2 border-b border-gray-200 dark:border-gray-700">
 
-          >
-            ✕
-          </button>
+            {/* <div className="sticky top-0 z-10 flex justify-end bg-inherit"> */}
+            <div className="flex justify-end">
+              <button
+                onClick={onClose}
+                className={`text-lg px-2 py-1 rounded hover:text-red-500 ${
+                  theme === "dark" ? "text-gray-300" : "text-gray-700"
+                }`}
+              >
+                ✕
+              </button>
+            </div>
 
-          <h4 className="text-sm font-semibold">
-            {workRequest.user?.name || workRequest.user?.email || "Unknown User"}
-          </h4>
 
-          <h2 className="text-xl font-bold mt-2">{workRequest.title}</h2>
+            <h4 className="text-sm font-semibold">
+              {workRequest.user?.name || workRequest.user?.email || "Unknown User"}
+            </h4>
 
-          <p className={`${theme === "dark" ? "text-gray-300" : "text-gray-700"}`}>
-            <strong>Budget:</strong> ${workRequest.budget}
-          </p>
-          <p className={`${theme === "dark" ? "text-gray-300" : "text-gray-700"}`}>
-            <strong>Duration:</strong> {duration ?? "N/A"} days
-          </p>
+            <h2 className="text-xl font-bold mt-2">{workRequest.title}</h2>
+
+            <p className={`${theme === "dark" ? "text-gray-300" : "text-gray-700"}`}>
+              <strong>Budget:</strong> ${workRequest.budget}
+            </p>
+            <p className={`${theme === "dark" ? "text-gray-300" : "text-gray-700"}`}>
+              <strong>Duration:</strong> {duration ?? "N/A"} days
+            </p>
+          </div>
 
           {/* <p className="mt-4 text-sm text-gray-800 whitespace-pre-line"> */}
           <p className={`mt-4 text-sm ${theme === "dark" ? "text-gray-300" : "text-gray-700"} whitespace-pre-line`}>
@@ -180,7 +312,7 @@ const WorkRequestModal = ({ workRequest, currentUser, onClose, onDeleted }) => {
             </div>
           )}
 
-          {isExpert && (
+          {/* {isExpert && (
             <div className="mt-6 space-y-2">
               <input
                 type="number"
@@ -203,7 +335,54 @@ const WorkRequestModal = ({ workRequest, currentUser, onClose, onDeleted }) => {
                 {isSubmitting ? "Submitting..." : "Submit Bid"}
               </button>
             </div>
+          )} */}
+          {isExpert && (
+            <div className="mt-6 space-y-2">
+              {existingBid ? (
+                // <div className="text-sm text-gray-600 dark:text-gray-300">
+                //   <p>You already placed a bid:</p>
+                //   <p className="font-semibold text-green-600">${existingBid.amount}</p>
+                //   <p>{existingBid.message || "No message provided."}</p>
+                // </div>
+                <div className="text-sm bg-blue-50 dark:bg-gray-800 border border-blue-200 dark:border-gray-700 p-4 rounded-md">
+                  <p className="text-gray-700 dark:text-gray-300 mb-1">You already placed a bid for this project:</p>
+                  <p className="text-lg font-semibold text-green-600 dark:text-green-400 mb-1">${existingBid.amount}</p>
+                  {existingBid.message ? (
+                    <blockquote className="italic text-gray-600 dark:text-gray-400 border-l-4 border-blue-400 pl-4">
+                      “{existingBid.message}”
+                    </blockquote>
+                  ) : (
+                    <p className="text-sm italic text-gray-500">No message provided.</p>
+                  )}
+                </div>
+
+              ) : (
+                <>
+                  <input
+                    type="number"
+                    placeholder="Your bid amount"
+                    className="w-full px-3 py-2 border rounded"
+                    value={bidAmount}
+                    onChange={(e) => setBidAmount(e.target.value)}
+                  />
+                  <textarea
+                    placeholder="Message (optional)"
+                    className="w-full px-3 py-2 border rounded"
+                    value={bidMessage}
+                    onChange={(e) => setBidMessage(e.target.value)}
+                  />
+                  <button
+                    disabled={isSubmitting}
+                    onClick={handleBidSubmit}
+                    className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-500 w-full"
+                  >
+                    {isSubmitting ? "Submitting..." : "Submit Bid"}
+                  </button>
+                </>
+              )}
+            </div>
           )}
+
         </motion.div>
       </motion.div>
     </AnimatePresence>
