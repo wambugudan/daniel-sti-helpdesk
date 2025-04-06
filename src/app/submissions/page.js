@@ -98,7 +98,13 @@ const Submissions = () => {
               key={request.id}
               workRequest={request}
               currentUser={currentUser}
-              onView={(req) => setSelectedRequest(req)}
+              // onView={(req) => setSelectedRequest(req)}
+              onView={async (req) => {
+                const res = await fetch(`/api/work-request/${req.id}`);
+                const fullRequest = await res.json();
+                setSelectedRequest(fullRequest);
+              }}
+              
             />
           ))}
         </div>
