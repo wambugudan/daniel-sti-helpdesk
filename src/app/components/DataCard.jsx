@@ -73,6 +73,25 @@ const DataCard = ({ workRequest, currentUser, onView }) => {
       {/* Task Title */}
       <h3 className="text-lg font-bold">{workRequest.title}</h3>
 
+      {/* Number of bids Badge */}
+      {/* {currentUser?.role === "COUNCIL" && currentUser?.id === workRequest.userId && workRequest.bids?.length > 0 && (
+        <span className="inline-block mt-1 text-xs font-semibold bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">
+          {workRequest.bids.length} {workRequest.bids.length === 1 ? "Bid" : "Bids"}
+        </span>
+      )} */}
+
+      {/* {isCouncil && isOwner && Array.isArray(workRequest.bids) && workRequest.bids.length > 0 && (
+        <span className="inline-block mt-1 text-xs font-semibold bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">
+          {workRequest.bids.length} {workRequest.bids.length === 1 ? "Bid" : "Bids"}
+        </span>
+      )} */}
+
+      {isCouncil && isOwner && workRequest._count?.bids > 0 && (
+        <div className="inline-block ml-2 px-2 py-1 text-xs bg-blue-200 text-blue-800 rounded-full">
+          {workRequest._count.bids} bids
+        </div>
+      )}
+
       {/* Display Budget */}
       <h3 className="text-sm mt-1">
         Budget: <span className="font-medium text-green-400">$ {workRequest.budget}</span>

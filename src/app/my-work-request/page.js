@@ -67,7 +67,12 @@ const MyWorkRequest = () => {
               currentUser={currentUser}
               // onView={(req) => setSelectedRequest(req)}
               onView={async (req) => {
-                const res = await fetch(`/api/work-request/${req.id}`);
+                // const res = await fetch(`/api/work-request/${req.id}`);
+                const res = await fetch(`/api/work-request/${req.id}`, {
+                  headers: {
+                    'x-user-id': currentUser.id, // send user ID to backend for filtering
+                  },
+                })
                 const fullRequest = await res.json();
                 setSelectedRequest(fullRequest);
               }}

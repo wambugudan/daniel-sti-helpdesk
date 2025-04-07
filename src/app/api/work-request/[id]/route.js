@@ -1,62 +1,25 @@
+// This file handles the API routes for a specific work request based on its ID.
+// It includes GET, PUT, and DELETE methods to fetch, update, and delete work requests respectively.
 import prisma from "@/libs/prisma";
-
 
 export const dynamic = 'force-dynamic';
 
-// API for handling GET Work Request to be edited
-// export async function GET(request, context) {
-//   try {
-//     const params = await context.params; 
-//     const { id } = params;
-
-//     // const { id } = context.params || {};
-
-
-//     console.log("Fetching work request with ID:", id);
-
-//     const workRequest = await prisma.workRequest.findUnique({
-//       where: { id },
-//     });
-
-//     if (!workRequest) {
-//       return new Response(JSON.stringify({ error: "Not Found" }), {
-//         status: 404,
-//         headers: { "Content-Type": "application/json" },
-//       });
-//     }
-
-//     return new Response(JSON.stringify(workRequest), {
-//       status: 200,
-//       headers: { "Content-Type": "application/json" },
-//     });
-//   } catch (error) {
-//     console.error("Error fetching work request:", error);
-//     return new Response(
-//       JSON.stringify({ error: "Failed to fetch work request" }),
-//       { status: 500, headers: { "Content-Type": "application/json" } }
-//     );
-//   }
-// }
-
 export async function GET(request, context) {
   try {
-    // const { id } = context.params;
     const params = await context.params;
     const { id } = params;
 
-    console.log("Fetching work request with ID:", id);
+    const userId = request.headers.get('x-user-id'); // 👈 Extract userId from header
+
+    console.log("Fetching work request with ID:", id, "for user:", userId);
 
     const workRequest = await prisma.workRequest.findUnique({
       where: { id },
       include: {
-        user: true, // Include council user
+        user: true,
         bids: {
-          include: {
-            user: true, // Include expert info for each bid
-          },
-          orderBy: {
-            createdAt: 'desc', // Show most recent bids first
-          },
+          include: { user: true },
+          orderBy: { createdAt: 'desc' },
         },
       },
     });
@@ -68,10 +31,21 @@ export async function GET(request, context) {
       });
     }
 
+    // 🛡️ If the current user is not the owner, strip the bids before returning
+    if (workRequest.userId !== userId) {
+      const { bids, ...rest } = workRequest;
+      return new Response(JSON.stringify(rest), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    // ✅ If user is owner, return everything
     return new Response(JSON.stringify(workRequest), {
       status: 200,
       headers: { "Content-Type": "application/json" },
     });
+
   } catch (error) {
     console.error("Error fetching work request:", error);
     return new Response(
@@ -80,59 +54,6 @@ export async function GET(request, context) {
     );
   }
 }
-
-// export async function GET(request, context) {
-//   try {
-//     // const { id } = context.params;
-//     const params = await context.params;
-//     const { id } = params;
-
-//     const userId = request.headers.get('x-user-id'); // 🆕 Get userId from header
-
-//     if (!userId) {
-//       return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
-//     }
-
-//     // Fetch work request with user (council) and bids
-//     const workRequest = await prisma.workRequest.findUnique({
-//       where: { id },
-//       include: {
-//         user: true,
-//         bids: {
-//           include: { user: true },
-//           orderBy: { createdAt: "desc" },
-//         },
-//       },
-//     });
-
-//     if (!workRequest) {
-//       return new Response(JSON.stringify({ error: "Not Found" }), { status: 404 });
-//     }
-
-//     // 🔐 Check if user making the request is the owner
-//     if (workRequest.userId !== userId) {
-//       // Return limited workRequest without bids
-//       const { bids, ...rest } = workRequest;
-//       return new Response(JSON.stringify(rest), {
-//         status: 200,
-//         headers: { "Content-Type": "application/json" },
-//       });
-//     }
-
-//     // ✅ If user is owner, return full work request with bids
-//     return new Response(JSON.stringify(workRequest), {
-//       status: 200,
-//       headers: { "Content-Type": "application/json" },
-//     });
-
-//   } catch (error) {
-//     console.error("Error fetching work request:", error);
-//     return new Response(
-//       JSON.stringify({ error: "Failed to fetch work request" }),
-//       { status: 500, headers: { "Content-Type": "application/json" } }
-//     );
-//   }
-// }
 
 
 
