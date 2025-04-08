@@ -44,17 +44,6 @@ const WorkRequestModal = ({ workRequest: initialWorkRequest, currentUser, onClos
       ? Math.ceil((new Date(workRequest.deadline) - new Date(workRequest.createdAt)) / (1000 * 60 * 60 * 24))
       : null;
 
-  // const fetchWorkRequestDetails = async () => {
-  //   try {
-  //     const res = await fetch(`/api/work-request/${initialWorkRequest.id}`, {
-  //       headers: { 'x-user-id': currentUser.id },
-  //     });
-  //     const latest = await res.json();
-  //     setWorkRequest(latest);
-  //   } catch (err) {
-  //     console.error("❌ Error fetching updated work request", err);
-  //   }
-  // };
 
   const fetchWorkRequestDetails = async () => {
     if (!initialWorkRequest?.id || !currentUser?.id) return;
@@ -89,21 +78,6 @@ const WorkRequestModal = ({ workRequest: initialWorkRequest, currentUser, onClos
     setExistingBid(bid);
   };
 
-  // useEffect(() => {
-  //   document.body.style.overflow = "hidden";
-  //   if (isCouncil) fetchWorkRequestDetails();
-  //   if (isExpert) fetchExistingBid();
-
-  //   const handleEscape = (e) => {
-  //     if (e.key === "Escape") onClose();
-  //   };
-  //   document.addEventListener("keydown", handleEscape);
-
-  //   return () => {
-  //     document.body.style.overflow = "auto";
-  //     document.removeEventListener("keydown", handleEscape);
-  //   };
-  // }, []);
 
   useEffect(() => {
     document.body.style.overflow = "hidden";
@@ -198,8 +172,14 @@ const WorkRequestModal = ({ workRequest: initialWorkRequest, currentUser, onClos
 
             <h4 className="text-sm font-semibold">
               {workRequest.user?.name || workRequest.user?.email || "Unknown User"}
-            </h4>
+            </h4>            
             <h2 className="text-xl font-bold mt-2">{workRequest.title}</h2>
+            <div className="inline-block ml-2 px-2 py-1 text-xs rounded-full 
+                        bg-blue-100 text-blue-700">
+              {workRequest._count?.bids > 0
+                ? `${workRequest._count.bids} ${workRequest._count.bids === 1 ? 'bid' : 'bids'}`
+                : 'No bids yet'}
+            </div>
             <p className={`${theme === "dark" ? "text-gray-300" : "text-gray-700"}`}><strong>Budget:</strong> ${workRequest.budget}</p>
             <p className={`${theme === "dark" ? "text-gray-300" : "text-gray-700"}`}><strong>Duration:</strong> {duration ?? "N/A"} days</p>
           </div>

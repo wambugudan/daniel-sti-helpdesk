@@ -75,14 +75,14 @@ const DataCard = ({ workRequest, currentUser, onView }) => {
       <h3 className="text-lg font-bold">{workRequest.title}</h3>
 
       {/* Number of bids Badge */}
-      {isCouncil && isOwner && (
+      {/* {isCouncil && isOwner && ( */}
         <div className="inline-block ml-2 px-2 py-1 text-xs rounded-full 
                         bg-blue-100 text-blue-700">
           {workRequest._count?.bids > 0
             ? `${workRequest._count.bids} ${workRequest._count.bids === 1 ? 'bid' : 'bids'}`
             : 'No bids yet'}
         </div>
-      )}
+      {/* )} */}
 
 
 
