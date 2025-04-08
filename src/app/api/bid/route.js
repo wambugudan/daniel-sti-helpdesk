@@ -34,3 +34,27 @@ export async function POST(req) {
     });
   }
 }
+
+
+// This function handles GET requests to fetch all bids from the database.
+export async function GET() {
+  try {
+    const bids = await prisma.bid.findMany({
+      include: {
+        user: true,
+        workRequest: true,
+      },
+    });
+
+    return new Response(JSON.stringify(bids), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  } catch (err) {
+    console.error("❌ Error fetching bids:", err);
+    return new Response(JSON.stringify({ error: "Failed to fetch bids" }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+}

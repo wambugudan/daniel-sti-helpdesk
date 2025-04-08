@@ -63,14 +63,49 @@ export async function GET(request) {
 
     const whereClause = userId ? { userId } : {};
 
+  
+    // const [data, total] = await Promise.all([
+    //   prisma.workRequest.findMany({
+    //     where: whereClause,
+    //     include: {
+    //       user: true,
+    //       bids: true,
+    //       _count: {
+    //         select: { bids: true },
+    //       },
+    //     },
+    //     orderBy: { createdAt: "desc" },
+    //     skip: (page - 1) * limit,
+    //     take: limit,
+    //   }),
+    //   prisma.workRequest.count({ where: whereClause }),
+    // ]);
+
+
+    // const [data, total] = await Promise.all([
+    //   prisma.workRequest.findMany({
+    //     where: whereClause,
+    //     include: {
+    //       user: true,
+    //       _count: {
+    //         select: { bids: true },
+    //       },
+    //     },
+    //     orderBy: { createdAt: "desc" },
+    //     skip: (page - 1) * limit,
+    //     take: limit,
+    //   }),
+    //   prisma.workRequest.count({ where: whereClause }),
+    // ]);
+
     const [data, total] = await Promise.all([
       prisma.workRequest.findMany({
         where: whereClause,
         include: {
-          _count: {
-            select: { bids: true },
-          },
           user: true,
+          _count: {                // 👈 THIS block is missing in your current code
+            select: { bids: true }
+          }
         },
         orderBy: { createdAt: "desc" },
         skip: (page - 1) * limit,
@@ -78,6 +113,10 @@ export async function GET(request) {
       }),
       prisma.workRequest.count({ where: whereClause }),
     ]);
+    
+    
+    
+    
 
     return new Response(JSON.stringify({ data, total }), {
       status: 200,

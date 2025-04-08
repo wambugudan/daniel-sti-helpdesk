@@ -36,6 +36,7 @@ const Submissions = () => {
       setLoading(true);
       try {
         const res = await fetch(`/api/workRequests?page=${page}&limit=${limit}`);
+        
         if (!res.ok) throw new Error("Failed to fetch work requests");
 
         const { data, pagination } = await res.json();
@@ -52,6 +53,7 @@ const Submissions = () => {
 
     fetchWorkRequests();
   }, [page, limit]);
+  
 
   return (
     <div className="container mx-auto my-6 px-4 md:px-6 lg:px-8">

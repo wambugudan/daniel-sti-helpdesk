@@ -16,10 +16,16 @@ export async function GET(request) {
     const workRequests = await prisma.workRequest.findMany({
       skip,
       take: limit,
-      orderBy: { createdAt: "desc" },
+      orderBy: { createdAt: "desc" },      
       include: {
         user: true,
+        _count: {
+          select: {
+            bids: true,
+          },
+        },
       },
+      
     });
 
     const totalCount = await prisma.workRequest.count();

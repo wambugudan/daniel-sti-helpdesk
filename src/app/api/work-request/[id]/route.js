@@ -13,16 +13,25 @@ export async function GET(request, context) {
 
     console.log("Fetching work request with ID:", id, "for user:", userId);
 
+
     const workRequest = await prisma.workRequest.findUnique({
       where: { id },
       include: {
         user: true,
         bids: {
-          include: { user: true },
-          orderBy: { createdAt: 'desc' },
+          include: {
+            user: true,
+          },
+          orderBy: {
+            createdAt: 'desc',
+          },
+        },
+        _count: {
+          select: { bids: true },
         },
       },
     });
+    
 
     if (!workRequest) {
       return new Response(JSON.stringify({ error: "Not Found" }), {

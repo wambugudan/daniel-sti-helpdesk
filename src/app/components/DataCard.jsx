@@ -27,6 +27,7 @@ const getFileIcon = (fileURL) => {
 };
 
 const DataCard = ({ workRequest, currentUser, onView }) => {
+  
   const isOwner = currentUser?.id === workRequest.userId;
   const isCouncil = currentUser?.role === "COUNCIL";
   const isExpert = currentUser?.role === "EXPERT";
@@ -74,33 +75,21 @@ const DataCard = ({ workRequest, currentUser, onView }) => {
       <h3 className="text-lg font-bold">{workRequest.title}</h3>
 
       {/* Number of bids Badge */}
-      {/* {currentUser?.role === "COUNCIL" && currentUser?.id === workRequest.userId && workRequest.bids?.length > 0 && (
-        <span className="inline-block mt-1 text-xs font-semibold bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">
-          {workRequest.bids.length} {workRequest.bids.length === 1 ? "Bid" : "Bids"}
-        </span>
-      )} */}
-
-      {/* {isCouncil && isOwner && Array.isArray(workRequest.bids) && workRequest.bids.length > 0 && (
-        <span className="inline-block mt-1 text-xs font-semibold bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full">
-          {workRequest.bids.length} {workRequest.bids.length === 1 ? "Bid" : "Bids"}
-        </span>
-      )} */}
-
-      {isCouncil && isOwner && workRequest._count?.bids > 0 && (
-        <div className="inline-block ml-2 px-2 py-1 text-xs bg-blue-200 text-blue-800 rounded-full">
-          {workRequest._count.bids} bids
+      {isCouncil && isOwner && (
+        <div className="inline-block ml-2 px-2 py-1 text-xs rounded-full 
+                        bg-blue-100 text-blue-700">
+          {workRequest._count?.bids > 0
+            ? `${workRequest._count.bids} ${workRequest._count.bids === 1 ? 'bid' : 'bids'}`
+            : 'No bids yet'}
         </div>
       )}
+
+
 
       {/* Display Budget */}
       <h3 className="text-sm mt-1">
         Budget: <span className="font-medium text-green-400">$ {workRequest.budget}</span>
       </h3>
-
-      {/* Display WorkRequest Duration */}
-      {/* <h3 className="text-sm mt-1">
-        Duration: <span className="font-medium text-yellow-500">{workRequest.durationDays ?? 'N/A'} days</span>
-      </h3> */}
 
       <h3 className="text-sm mt-1">
         Duration: <span className="font-medium text-yellow-500">{duration ?? 'N/A'} days</span>
