@@ -3,7 +3,8 @@
 import { useRouter } from "next/navigation";
 import { useTheme } from "@/context/ThemeProvider";
 import { useState } from "react";
-import WorkRequestModal from "./WorkRequestModal"; 
+import WorkRequestModal from "./WorkRequestModal";
+import Badge from "./Badge"; 
 import { FaFilePdf, FaFileWord, FaFileImage, FaFileAlt } from "react-icons/fa";
 
 const getFileIcon = (fileURL) => {
@@ -76,12 +77,13 @@ const DataCard = ({ workRequest, currentUser, onView }) => {
 
       {/* Number of bids Badge */}
       {/* {isCouncil && isOwner && ( */}
-        <div className="inline-block ml-2 px-2 py-1 text-xs rounded-full 
+        {/* <div className="inline-block ml-2 px-2 py-1 text-xs rounded-full 
                         bg-blue-100 text-blue-700">
           {workRequest._count?.bids > 0
             ? `${workRequest._count.bids} ${workRequest._count.bids === 1 ? 'bid' : 'bids'}`
             : 'No bids yet'}
-        </div>
+        </div> */}
+        <Badge count={workRequest._count.bids || 0} />
       {/* )} */}
 
 
