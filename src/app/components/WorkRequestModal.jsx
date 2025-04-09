@@ -34,6 +34,9 @@ const WorkRequestModal = ({ workRequest: initialWorkRequest, currentUser, onClos
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [existingBid, setExistingBid] = useState(null);
   const [showBids, setShowBids] = useState(false);
+  const [expandedBids, setExpandedBids] = useState({});
+  const [accepting, setAccepting] = useState(false);
+
 
   const isOwner = currentUser?.id === workRequest.userId;
   const isCouncil = currentUser?.role === "COUNCIL";
@@ -77,6 +80,15 @@ const WorkRequestModal = ({ workRequest: initialWorkRequest, currentUser, onClos
     const { bid } = await res.json();
     setExistingBid(bid);
   };
+
+  
+  const toggleExpand = (bidId) => {
+    setExpandedBids((prev) => ({
+      ...prev,
+      [bidId]: !prev[bidId],
+    }));
+  };
+
 
 
   useEffect(() => {
@@ -147,6 +159,36 @@ const WorkRequestModal = ({ workRequest: initialWorkRequest, currentUser, onClos
     }
   };
 
+
+  const handleAcceptBid = async (bidId) => {
+    setAccepting(true);
+    try {
+      const res = await fetch(`/api/bid/accept`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          workRequestId: workRequest.id,
+          bidId,
+          userId: currentUser.id,
+        }),
+      });
+  
+      if (!res.ok) throw new Error("Failed to accept bid");
+  
+      toast.success("Bid accepted!");
+      await fetchWorkRequestDetails(); // refresh modal data
+    } catch (error) {
+      toast.error("Error accepting bid");
+      console.error("❌ Accept bid error:", error);
+    } finally {
+      setAccepting(false);
+    }
+  };
+  
+
+
+  
+
   return (
     <AnimatePresence>
       <motion.div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex justify-center items-center z-50 overflow-y-auto"
@@ -200,22 +242,124 @@ const WorkRequestModal = ({ workRequest: initialWorkRequest, currentUser, onClos
                 <button onClick={() => setShowBids(!showBids)} className="text-xs text-blue-600 hover:underline">
                   {showBids ? "Hide Bids" : "Show Bids"}
                 </button>
-              </div>
+              </div>          
+
               {showBids && (
                 <div className="space-y-3 max-h-60 overflow-y-auto pr-2">
-                  {workRequest.bids.map((bid) => (
-                    <div key={bid.id} className={`rounded-md p-3 border ${
-                      theme === "dark" ? "border-gray-700 bg-gray-800" : "border-gray-200 bg-gray-100"
-                    }`}>
-                      <p className="text-sm font-medium">
-                        💬 {bid.user?.name || "Expert"} - ${bid.amount}
-                      </p>
-                      <p className="text-xs text-gray-500">{new Date(bid.createdAt).toLocaleString()}</p>
-                      {bid.message && <p className="mt-1 text-sm">{bid.message}</p>}
-                    </div>
-                  ))}
+                  {workRequest.bids.map((bid) => {
+                    const isAccepted = workRequest.acceptedBidId === bid.id;
+
+                    return (
+                      // <div
+                      //   key={bid.id}
+                      //   className={`rounded-md p-3 border relative ${
+                      //     isAccepted
+                      //       ? "bg-green-100 border-green-400"
+                      //       : theme === "dark"
+                      //       ? "bg-gray-800 border-gray-700"
+                      //       : "bg-gray-100 border-gray-200"
+                      //   }`}
+                      // >
+                      //   <p className="text-sm font-medium">
+                      //     💬 {bid.user?.name || "Expert"} - ${bid.amount}
+                      //   </p>
+                      //   <p className="text-xs text-gray-500">
+                      //     {new Date(bid.createdAt).toLocaleString()}
+                      //   </p>
+
+                      //   {bid.message && (
+                      //     <>
+                      //       <p className="mt-1 text-sm">
+                      //         {expandedBids[bid.id]
+                      //           ? bid.message
+                      //           : bid.message.length > 200
+                      //           ? `${bid.message.slice(0, 200)}...`
+                      //           : bid.message}
+                      //       </p>
+
+                      //       {bid.message.length > 200 && (
+                      //         <button
+                      //           onClick={() => toggleExpand(bid.id)}
+                      //           className="text-xs text-blue-600 hover:underline mt-1"
+                      //         >
+                      //           {expandedBids[bid.id] ? "Show less" : "Read more"}
+                      //         </button>
+                      //       )}
+                      //     </>
+                      //   )}
+
+                      //   {/* ✅ Accepted Label */}
+                      //   {isAccepted && (
+                      //     <span className="absolute top-2 right-2 text-green-700 text-xs font-bold">
+                      //       ✅ Accepted
+                      //     </span>
+                      //   )}
+
+                      //   {/* 👇 Accept Button (if not accepted) */}
+                      //   {isCouncil && isOwner && !isAccepted && !workRequest.acceptedBidId && (
+                      //     <button
+                      //       onClick={() => handleAcceptBid(bid.id)}
+                      //       disabled={accepting}
+                      //       className="mt-2 px-3 py-1 text-xs font-medium rounded bg-green-600 text-white hover:bg-green-500"
+                      //     >
+                      //       {accepting ? "Accepting..." : "Accept Bid"}
+                      //     </button>
+                      //   )}
+                      // </div>
+                      <div
+                        key={bid.id}
+                        className={`relative flex flex-col justify-between rounded-md p-3 border ${
+                          theme === "dark" ? "border-gray-700 bg-gray-800" : "border-gray-200 bg-gray-100"
+                        }`}
+                      >
+                        <div>
+                          <p className="text-sm font-medium">
+                            💬 {bid.user?.name || "Expert"} - ${bid.amount}
+                          </p>
+                          <p className="text-xs text-gray-500">{new Date(bid.createdAt).toLocaleString()}</p>
+
+                          {/* Bid Message with Read More */}
+                          {bid.message && (
+                            <>
+                              <p className="mt-1 text-sm">
+                                {expandedBids[bid.id]
+                                  ? bid.message
+                                  : bid.message.length > 200
+                                  ? `${bid.message.slice(0, 200)}...`
+                                  : bid.message}
+                              </p>
+                              {bid.message.length > 200 && (
+                                <button
+                                  onClick={() => toggleExpand(bid.id)}
+                                  className="text-xs text-blue-600 hover:underline mt-1"
+                                >
+                                  {expandedBids[bid.id] ? "Show less" : "Read more"}
+                                </button>
+                              )}
+                            </>
+                          )}
+                        </div>
+
+                        {/* Action Row */}
+                        <div className="mt-3 flex justify-end">
+                          {isAccepted ? (
+                            <span className="text-green-700 text-xs font-bold">✅ Accepted</span>
+                          ) : !workRequest.acceptedBidId ?(
+                            <button
+                              onClick={() => handleAcceptBid(bid.id)}
+                              className="text-xs px-3 py-1 rounded bg-green-600 text-white hover:bg-green-500"
+                            >
+                              Accept Bid
+                            </button>
+                          ): null}
+                        </div>
+                      </div>
+
+                    );
+                  })}
                 </div>
               )}
+
             </div>
           )}
 

@@ -38,7 +38,15 @@ model WorkRequest {
   updatedAt   DateTime  @updatedAt
   deadline    DateTime
   durationDays Int?     // Optional: Used for calculating deadline
+  
 
+  // Fields for Accept Bid Flow
+  status         WorkRequestStatus @default(OPEN)
+  acceptedBidId  String?  @unique
+  acceptedBid    Bid?              @relation("AcceptedBid", fields: [acceptedBidId], references: [id])
+
+
+  // Relationships
   // Relation to User (Council)
   user        User? @relation("UserWorkRequests", fields: [userId], references: [id], onDelete: Cascade)
 
@@ -60,6 +68,9 @@ model Bid {
   // Relations
   user        User        @relation("UserBids", fields: [userId], references: [id], onDelete: Cascade)
   workRequest WorkRequest @relation("WorkRequestBids", fields: [workRequestId], references: [id], onDelete: Cascade)
+
+  // Backward relation from WorkRequest
+  acceptedIn  WorkRequest? @relation("AcceptedBid")
 }
 
 model Invite {
@@ -86,4 +97,11 @@ enum InviteStatus {
   PENDING
   ACCEPTED
   REJECTED
+}
+
+// Enum for WorkRequest status
+enum WorkRequestStatus {
+  OPEN
+  IN_PROGRESS
+  CLOSED
 }

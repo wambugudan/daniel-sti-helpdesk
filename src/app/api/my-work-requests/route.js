@@ -21,7 +21,13 @@ export async function GET(request) {
     const [data, total] = await Promise.all([
       prisma.workRequest.findMany({
         where: { userId },
-        include: { user: true },
+        include: {
+          user: true,
+          bids: true, // 👈 Include bid objects
+          _count: {
+            select: { bids: true }, // 👈 Include bid count
+          },
+        },
         skip,
         take: limit,
         orderBy: { createdAt: "desc" },
