@@ -65,9 +65,8 @@ const MyWorkRequest = () => {
               key={request.id}
               workRequest={request}
               currentUser={currentUser}
-              // onView={(req) => setSelectedRequest(req)}
+              showStatus={true}
               onView={async (req) => {
-                // const res = await fetch(`/api/work-request/${req.id}`);
                 const res = await fetch(`/api/work-request/${req.id}`, {
                   headers: {
                     'x-user-id': currentUser.id, // send user ID to backend for filtering

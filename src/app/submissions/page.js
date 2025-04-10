@@ -8,11 +8,13 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import DataCard from "../components/DataCard";
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import WorkRequestModal from "../components/WorkRequestModal";
+import { useTheme } from '@/context/ThemeProvider';
 
 const Submissions = () => {
   const { currentUser, setCurrentUser, allUsers } = useCurrentUser();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { theme } = useTheme();
 
   const [workRequests, setWorkRequests] = useState([]);
   const [selectedRequest, setSelectedRequest] = useState(null);
@@ -76,7 +78,33 @@ const Submissions = () => {
             </option>
           ))}
         </select>
-      </div>
+      </div>      
+
+      {/* {currentUser.role === "COUNCIL" && (
+        <div className="mb-4 text-sm px-4 py-2 rounded shadow-sm
+          bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100 transition">
+          💡 Only <strong>open</strong> work requests are shown here. To view all your submissions, go to{" "}
+          <a href="/my-work-request" className="underline text-blue-700 dark:text-blue-300 hover:text-blue-600 dark:hover:text-blue-200">
+            My Work Requests
+          </a>.
+        </div>
+      )} */}
+
+
+      {/* Note for Council */}
+      {currentUser?.role === "COUNCIL" && (
+        <div className={`mb-6 px-4 py-2 rounded-md border border-blue-300 bg-blue-50 text-blue-800 dark:border-blue-700 ${ theme === "dark" && "bg-blue-900 text-blue-100 transition-colors"}`}>
+          💡 <strong>Note:</strong> Only <span className="font-semibold">open</span> work requests are shown here.
+          To view all your work requests, visit{" "}
+          <a
+            href="/my-work-request"
+            className={`underline text-teal-600 hover:text-teal-900 ${ theme === "dark" && "text-teal-300 hover:text-teal-200 transition-colors"}`}
+          >
+            My Work Requests
+          </a>.
+        </div>
+      )}
+
 
       {/* Add Work Request Button */}
       {currentUser.role === 'COUNCIL' && (
@@ -90,9 +118,24 @@ const Submissions = () => {
         </div>
       )}
 
+
       {/* Work Requests */}
       {loading ? (
         <div className="text-center py-10 text-gray-500 text-sm">Loading work requests...</div>
+      ) : workRequests.length === 0 ? (
+        currentUser.role === "COUNCIL" ? (
+          <p className="text-center text-gray-600 mt-10">
+            You have no <strong>open</strong> work requests at the moment.
+            <br />
+            Go to{" "}
+            <a href="/my-work-request" className="underline text-blue-600 hover:text-blue-500">
+              My Work Requests
+            </a>{" "}
+            to view all your submissions.
+          </p>
+        ) : (
+          <p className="text-center text-gray-600 mt-10">No work requests available.</p>
+        )
       ) : (
         <div className="grid grid-cols-1 gap-8">
           {workRequests.map(request => (
@@ -100,22 +143,18 @@ const Submissions = () => {
               key={request.id}
               workRequest={request}
               currentUser={currentUser}
-              // onView={(req) => setSelectedRequest(req)}
               onView={async (req) => {
-                // const res = await fetch(`/api/work-request/${req.id}`);
                 const res = await fetch(`/api/work-request/${req.id}`, {
-                  headers: {
-                    'x-user-id': currentUser.id, // send user ID to backend for filtering
-                  },
-                })
+                  headers: { 'x-user-id': currentUser.id },
+                });
                 const fullRequest = await res.json();
                 setSelectedRequest(fullRequest);
               }}
-              
             />
           ))}
         </div>
       )}
+
 
       {/* Pagination Controls */}
       <div className="flex items-center justify-between mt-10">

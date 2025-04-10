@@ -14,9 +14,10 @@ export async function GET(request) {
     const skip = (page - 1) * limit;
 
     const workRequests = await prisma.workRequest.findMany({
+      where: { status: "OPEN" }, // 👈 Only fetch OPEN requests
       skip,
       take: limit,
-      orderBy: { createdAt: "desc" },      
+      orderBy: { createdAt: "desc" },
       include: {
         user: true,
         _count: {
@@ -25,10 +26,12 @@ export async function GET(request) {
           },
         },
       },
-      
     });
-
-    const totalCount = await prisma.workRequest.count();
+    
+    const totalCount = await prisma.workRequest.count({
+      where: { status: "OPEN" }, // 👈 Match count with filtered results
+    });
+    
 
     return new Response(
       JSON.stringify({
