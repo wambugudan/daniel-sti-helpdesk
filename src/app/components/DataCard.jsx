@@ -67,7 +67,6 @@ const DataCard = ({ workRequest, currentUser, onView }) => {
       }`}
     >
       {/* Display username */}
-      {/* <h4 className="text-sm font-semibold">{workRequest.userId}</h4> */}
       <h4 className="text-sm font-semibold">
         {workRequest.user?.name || workRequest.user?.email || 'Unknown User'}
       </h4>
@@ -75,18 +74,10 @@ const DataCard = ({ workRequest, currentUser, onView }) => {
       {/* Task Title */}
       <h3 className="text-lg font-bold">{workRequest.title}</h3>
 
-      {/* Number of bids Badge */}
-      {/* {isCouncil && isOwner && ( */}
-        {/* <div className="inline-block ml-2 px-2 py-1 text-xs rounded-full 
-                        bg-blue-100 text-blue-700">
-          {workRequest._count?.bids > 0
-            ? `${workRequest._count.bids} ${workRequest._count.bids === 1 ? 'bid' : 'bids'}`
-            : 'No bids yet'}
-        </div> */}
+      {/* Number of bids Badge */} 
+      {(workRequest._count?.bids ?? 0) > 0 &&(     
         <Badge count={workRequest._count.bids || 0} />
-      {/* )} */}
-
-
+      )}   
 
       {/* Display Budget */}
       <h3 className="text-sm mt-1">

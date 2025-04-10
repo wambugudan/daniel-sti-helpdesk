@@ -186,6 +186,31 @@ const WorkRequestModal = ({ workRequest: initialWorkRequest, currentUser, onClos
   };
   
 
+  const handleUndoAcceptedBid = async () => {
+    setAccepting(true);
+    try {
+      const res = await fetch(`/api/bid/unaccept`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          workRequestId: workRequest.id,
+          userId: currentUser.id,
+        }),
+      });
+  
+      if (!res.ok) throw new Error("Failed to undo accepted bid");
+  
+      toast.success("Acceptance revoked");
+      await fetchWorkRequestDetails(); // Refresh modal
+    } catch (error) {
+      toast.error("Error revoking acceptance");
+      console.error("❌ Undo accept bid error:", error);
+    } finally {
+      setAccepting(false);
+    }
+  };
+  
+
 
   
 
@@ -249,63 +274,7 @@ const WorkRequestModal = ({ workRequest: initialWorkRequest, currentUser, onClos
                   {workRequest.bids.map((bid) => {
                     const isAccepted = workRequest.acceptedBidId === bid.id;
 
-                    return (
-                      // <div
-                      //   key={bid.id}
-                      //   className={`rounded-md p-3 border relative ${
-                      //     isAccepted
-                      //       ? "bg-green-100 border-green-400"
-                      //       : theme === "dark"
-                      //       ? "bg-gray-800 border-gray-700"
-                      //       : "bg-gray-100 border-gray-200"
-                      //   }`}
-                      // >
-                      //   <p className="text-sm font-medium">
-                      //     💬 {bid.user?.name || "Expert"} - ${bid.amount}
-                      //   </p>
-                      //   <p className="text-xs text-gray-500">
-                      //     {new Date(bid.createdAt).toLocaleString()}
-                      //   </p>
-
-                      //   {bid.message && (
-                      //     <>
-                      //       <p className="mt-1 text-sm">
-                      //         {expandedBids[bid.id]
-                      //           ? bid.message
-                      //           : bid.message.length > 200
-                      //           ? `${bid.message.slice(0, 200)}...`
-                      //           : bid.message}
-                      //       </p>
-
-                      //       {bid.message.length > 200 && (
-                      //         <button
-                      //           onClick={() => toggleExpand(bid.id)}
-                      //           className="text-xs text-blue-600 hover:underline mt-1"
-                      //         >
-                      //           {expandedBids[bid.id] ? "Show less" : "Read more"}
-                      //         </button>
-                      //       )}
-                      //     </>
-                      //   )}
-
-                      //   {/* ✅ Accepted Label */}
-                      //   {isAccepted && (
-                      //     <span className="absolute top-2 right-2 text-green-700 text-xs font-bold">
-                      //       ✅ Accepted
-                      //     </span>
-                      //   )}
-
-                      //   {/* 👇 Accept Button (if not accepted) */}
-                      //   {isCouncil && isOwner && !isAccepted && !workRequest.acceptedBidId && (
-                      //     <button
-                      //       onClick={() => handleAcceptBid(bid.id)}
-                      //       disabled={accepting}
-                      //       className="mt-2 px-3 py-1 text-xs font-medium rounded bg-green-600 text-white hover:bg-green-500"
-                      //     >
-                      //       {accepting ? "Accepting..." : "Accept Bid"}
-                      //     </button>
-                      //   )}
-                      // </div>
+                    return (                      
                       <div
                         key={bid.id}
                         className={`relative flex flex-col justify-between rounded-md p-3 border ${
@@ -339,19 +308,32 @@ const WorkRequestModal = ({ workRequest: initialWorkRequest, currentUser, onClos
                             </>
                           )}
                         </div>
-
-                        {/* Action Row */}
-                        <div className="mt-3 flex justify-end">
+                        
+                        {/* Accepting and unaccepting bids */}
+                        <div className="mt-3 flex justify-end items-center gap-3">
                           {isAccepted ? (
-                            <span className="text-green-700 text-xs font-bold">✅ Accepted</span>
-                          ) : !workRequest.acceptedBidId ?(
+                            <>
+                              <span className="text-green-700 text-xs font-bold">✅ Accepted</span>
+                              
+                              <button
+                                onClick={() => {
+                                  const confirmed = window.confirm("Are you sure you want to undo the accepted bid?");
+                                  if (confirmed) handleUndoAcceptedBid(bid.id);
+                                }}
+                                className="text-xs px-2 py-1 rounded bg-red-600 text-white hover:bg-red-500"
+                              >
+                                Undo
+                              </button>
+
+                            </>
+                          ) : !workRequest.acceptedBidId ? (
                             <button
                               onClick={() => handleAcceptBid(bid.id)}
                               className="text-xs px-3 py-1 rounded bg-green-600 text-white hover:bg-green-500"
                             >
                               Accept Bid
                             </button>
-                          ): null}
+                          ) : null}
                         </div>
                       </div>
 
