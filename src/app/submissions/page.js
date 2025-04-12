@@ -9,12 +9,17 @@ import DataCard from "../components/DataCard";
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import WorkRequestModal from "../components/WorkRequestModal";
 import { useTheme } from '@/context/ThemeProvider';
+import clsx from 'clsx';
+import { useHasMounted } from '@/hooks/useHasMounted';
+
 
 const Submissions = () => {
+  
   const { currentUser, setCurrentUser, allUsers } = useCurrentUser();
   const router = useRouter();
   const searchParams = useSearchParams();
   const { theme } = useTheme();
+  
 
   const [workRequests, setWorkRequests] = useState([]);
   const [selectedRequest, setSelectedRequest] = useState(null);
@@ -26,6 +31,8 @@ const Submissions = () => {
 
   const initialPage = parseInt(searchParams.get("page")) || 1;
   const [page, setPage] = useState(initialPage);
+
+  
 
   // Sync URL with current page
   useEffect(() => {
@@ -55,7 +62,10 @@ const Submissions = () => {
 
     fetchWorkRequests();
   }, [page, limit]);
-  
+
+  // All for hydration
+  const hasMounted = useHasMounted()
+  if (!hasMounted) return null;
 
   return (
     <div className="container mx-auto my-6 px-4 md:px-6 lg:px-8">
@@ -78,27 +88,29 @@ const Submissions = () => {
             </option>
           ))}
         </select>
-      </div>      
-
-      {/* {currentUser.role === "COUNCIL" && (
-        <div className="mb-4 text-sm px-4 py-2 rounded shadow-sm
-          bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-100 transition">
-          💡 Only <strong>open</strong> work requests are shown here. To view all your submissions, go to{" "}
-          <a href="/my-work-request" className="underline text-blue-700 dark:text-blue-300 hover:text-blue-600 dark:hover:text-blue-200">
-            My Work Requests
-          </a>.
-        </div>
-      )} */}
-
+      </div>
 
       {/* Note for Council */}
       {currentUser?.role === "COUNCIL" && (
-        <div className={`mb-6 px-4 py-2 rounded-md border border-blue-300 bg-blue-50 text-blue-800 dark:border-blue-700 ${ theme === "dark" && "bg-blue-900 text-blue-100 transition-colors"}`}>
+        <div 
+          // className={`mb-6 px-4 py-2 rounded-md border border-blue-300 bg-blue-50 text-blue-800 dark:border-blue-700 ${ theme === "dark" && "bg-blue-900 text-blue-100 transition-colors"}`}
+          className={clsx(
+            "mb-6 px-4 py-2 rounded-md",
+            theme === "dark"
+              ? "border-blue-700 bg-blue-900 text-blue-100"
+              : "border-blue-300 bg-blue-50 text-blue-800"
+          )}
+        >
           💡 <strong>Note:</strong> Only <span className="font-semibold">open</span> work requests are shown here.
           To view all your work requests, visit{" "}
           <a
             href="/my-work-request"
-            className={`underline text-teal-600 hover:text-teal-900 ${ theme === "dark" && "text-teal-300 hover:text-teal-200 transition-colors"}`}
+            // className={`underline text-teal-600 hover:text-teal-900 ${ theme === "dark" && "text-teal-300 hover:text-teal-200 transition-colors"}`}
+            className={`underline ${
+              theme === "dark"
+                ? "text-teal-300 hover:text-teal-200"
+                : "text-teal-600 hover:text-teal-900"
+            }`}
           >
             My Work Requests
           </a>.
