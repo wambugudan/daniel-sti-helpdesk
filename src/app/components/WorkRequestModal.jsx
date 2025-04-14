@@ -42,12 +42,16 @@ const WorkRequestModal = ({ workRequest: initialWorkRequest, currentUser, onClos
   const isCouncil = currentUser?.role === "COUNCIL";
   const isExpert = currentUser?.role === "EXPERT";
 
+
+  // This effect runs when the work request changes, updating the bid amount and message if an existing bid is found.
   const duration =
     workRequest.deadline && workRequest.createdAt
       ? Math.ceil((new Date(workRequest.deadline) - new Date(workRequest.createdAt)) / (1000 * 60 * 60 * 24))
       : null;
 
 
+  // This function fetches the latest work request details from the server.
+  // It sends a GET request to the server with the work request ID and user ID in the headers.
   const fetchWorkRequestDetails = async () => {
     if (!initialWorkRequest?.id || !currentUser?.id) return;
   
@@ -71,6 +75,8 @@ const WorkRequestModal = ({ workRequest: initialWorkRequest, currentUser, onClos
   };
   
 
+  // This function fetches the existing bid for the current user and work request.
+  // It sends a POST request to the server and updates the existingBid state with the response.
   const fetchExistingBid = async () => {
     const res = await fetch("/api/check-bid", {
       method: "POST",
@@ -82,6 +88,8 @@ const WorkRequestModal = ({ workRequest: initialWorkRequest, currentUser, onClos
   };
 
   
+  // This function toggles the expanded state of the bid message.
+  // It updates the expandedBids state to show or hide the full message.
   const toggleExpand = (bidId) => {
     setExpandedBids((prev) => ({
       ...prev,
@@ -91,6 +99,8 @@ const WorkRequestModal = ({ workRequest: initialWorkRequest, currentUser, onClos
 
 
 
+  // This effect runs when the component mounts and when the work request or user changes.
+  // It fetches the work request details and existing bid if applicable.
   useEffect(() => {
     document.body.style.overflow = "hidden";
   
@@ -114,6 +124,8 @@ const WorkRequestModal = ({ workRequest: initialWorkRequest, currentUser, onClos
   }, [currentUser?.id, initialWorkRequest?.id]);
   
 
+  // This function is called when the expert user wants to place a bid.
+  // It sends a POST request to the server with the bid details and updates the state accordingly.
   const handleBidSubmit = async () => {
     if (!bidAmount) return alert("Bid amount is required");
 
@@ -160,6 +172,8 @@ const WorkRequestModal = ({ workRequest: initialWorkRequest, currentUser, onClos
   };
 
 
+  // This function is called when the council user wants to accept a bid.
+  // It sends a PUT request to the server to update the work request with the accepted bid ID.
   const handleAcceptBid = async (bidId) => {
     setAccepting(true);
     try {
@@ -186,6 +200,8 @@ const WorkRequestModal = ({ workRequest: initialWorkRequest, currentUser, onClos
   };
   
 
+  // This function is called when the council user wants to undo the accepted bid.
+  // It sends a PUT request to the server to update the work request and remove the accepted bid.
   const handleUndoAcceptedBid = async () => {
     setAccepting(true);
     try {
@@ -209,6 +225,33 @@ const WorkRequestModal = ({ workRequest: initialWorkRequest, currentUser, onClos
       setAccepting(false);
     }
   };
+
+
+  // Marking work as completed
+  // This function is called when the council user wants to mark the work as completed.
+  const handleCompleteWork = async () => {
+    if (!confirm("Are you sure this work is fully completed?")) return;
+  
+    try {
+      const res = await fetch("/api/work-request/complete", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          workRequestId: workRequest.id,
+          userId: currentUser.id,
+        }),
+      });
+  
+      if (!res.ok) throw new Error("Failed to mark as completed");
+  
+      toast.success("Work marked as completed!");
+      await fetchWorkRequestDetails();
+    } catch (error) {
+      toast.error("Error updating status");
+      console.error("❌ Completion Error:", error);
+    }
+  };
+  
   
 
 
@@ -358,7 +401,7 @@ const WorkRequestModal = ({ workRequest: initialWorkRequest, currentUser, onClos
             {workRequest.category}
           </span>
 
-          {/* Council Edit/Delete */}
+          {/* Council Edit/Delete
           {isCouncil && isOwner && (
             <div className="mt-6 flex gap-3">
               <button onClick={() => router.push(`/work-request/${workRequest.id}`)}
@@ -372,7 +415,36 @@ const WorkRequestModal = ({ workRequest: initialWorkRequest, currentUser, onClos
                 }`}
               >Delete</button>
             </div>
+          )} */}
+
+          {/* Council Edit/Delete/Complete */}
+          {isCouncil && isOwner && (
+            <div className="mt-6 flex flex-wrap gap-3">
+              <button onClick={() => router.push(`/work-request/${workRequest.id}`)}
+                className={`px-3 py-1 text-xs font-medium rounded-md ${
+                  theme === "dark" ? "bg-teal-600 hover:bg-teal-500 text-white" : "bg-teal-500 hover:bg-teal-400 text-white"
+                }`}
+              >Edit</button>
+
+              <button onClick={() => handleDelete(workRequest.id)}
+                className={`px-3 py-1 text-xs font-medium rounded-md ${
+                  theme === "dark" ? "bg-red-600 text-white hover:bg-red-500" : "bg-red-500 text-white hover:bg-red-400"
+                }`}
+              >Delete</button>
+
+              {workRequest.status === "IN_PROGRESS" && (
+                <button
+                  onClick={handleCompleteWork}
+                  className={`px-3 py-1 text-xs font-medium rounded-md ${
+                    theme === "dark" ? "bg-green-700 hover:bg-green-600 text-white" : "bg-green-600 hover:bg-green-500 text-white"
+                  }`}
+                >
+                  ✅ Mark as Completed
+                </button>
+              )}
+            </div>
           )}
+
 
           {/* Expert Bidding */}
           {isExpert && (
