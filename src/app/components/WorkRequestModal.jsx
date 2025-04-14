@@ -3,12 +3,14 @@
 // The modal is styled using Tailwind CSS and includes animations using Framer Motion.
 'use client';
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { useTheme } from "@/context/ThemeProvider";
 import { FaFilePdf, FaFileWord, FaFileImage, FaFileAlt } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";
+import Confetti from "react-confetti";
+
 
 const getFileIcon = (fileURL) => {
   if (!fileURL) return <FaFileAlt className="text-gray-500 text-2xl" />;
@@ -36,6 +38,12 @@ const WorkRequestModal = ({ workRequest: initialWorkRequest, currentUser, onClos
   const [showBids, setShowBids] = useState(false);
   const [expandedBids, setExpandedBids] = useState({});
   const [accepting, setAccepting] = useState(false);
+
+  const [showConfetti, setShowConfetti] = useState(false);
+
+  const modalRef = useRef(null);
+  const [modalSize, setModalSize] = useState({ width: 0, height: 0 });
+
 
 
   const isOwner = currentUser?.id === workRequest.userId;
@@ -96,6 +104,19 @@ const WorkRequestModal = ({ workRequest: initialWorkRequest, currentUser, onClos
       [bidId]: !prev[bidId],
     }));
   };
+
+
+  useEffect(() => {
+    if (modalRef.current) {
+      const observer = new ResizeObserver(() => {
+        const { offsetWidth, offsetHeight } = modalRef.current;
+        setModalSize({ width: offsetWidth, height: offsetHeight });
+      });
+      observer.observe(modalRef.current);
+  
+      return () => observer.disconnect();
+    }
+  }, []); 
 
 
 
@@ -227,8 +248,6 @@ const WorkRequestModal = ({ workRequest: initialWorkRequest, currentUser, onClos
   };
 
 
-  // Marking work as completed
-  // This function is called when the council user wants to mark the work as completed.
   const handleCompleteWork = async () => {
     if (!confirm("Are you sure this work is fully completed?")) return;
   
@@ -244,18 +263,44 @@ const WorkRequestModal = ({ workRequest: initialWorkRequest, currentUser, onClos
   
       if (!res.ok) throw new Error("Failed to mark as completed");
   
-      toast.success("Work marked as completed!");
+      toast.success("🎉 Work marked as completed!");
+      setShowConfetti(true);
+      setTimeout(() => setShowConfetti(false), 3500); // 2.5 seconds
       await fetchWorkRequestDetails();
     } catch (error) {
       toast.error("Error updating status");
       console.error("❌ Completion Error:", error);
     }
+  };  
+  
+
+
+  // Reopen work request
+  // This function is called when the council user wants to reopen the work request.
+  const handleReopenWork = async () => {
+    if (!confirm("Reopen this work and mark it as In Progress?")) return;
+  
+    try {
+      const res = await fetch("/api/work-request/reopen", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          workRequestId: workRequest.id,
+          userId: currentUser.id,
+        }),
+      });
+  
+      if (!res.ok) throw new Error("Failed to reopen work");
+  
+      toast.success("Work reopened!");
+      await fetchWorkRequestDetails();
+    } catch (error) {
+      toast.error("Error reopening work");
+      console.error("❌ Reopen Error:", error);
+    }
   };
   
-  
-
-
-  
+    
 
   return (
     <AnimatePresence>
@@ -267,11 +312,24 @@ const WorkRequestModal = ({ workRequest: initialWorkRequest, currentUser, onClos
           animate={{ scale: 1, y: 0 }}
           exit={{ scale: 0.9, y: 40 }}
           transition={{ duration: 0.2 }}
+          ref={modalRef}
           className={`rounded-lg shadow-lg w-full max-w-2xl p-6 relative ${
             theme === "dark" ? "bg-gray-900 text-white" : "bg-white text-gray-900"
           }`}
           style={{ maxHeight: "90vh", overflowY: "auto" }}
         >
+          {/* Confetti effect when work is marked as completed */}
+          {workRequest.status === "CLOSED" && showConfetti && (
+            <div className="absolute inset-0 z-40 pointer-events-none">
+              <Confetti
+                width={modalSize.width}
+                height={modalSize.height}
+                numberOfPieces={200}
+                recycle={false}
+              />
+            </div>
+          )}
+
           {/* Sticky Header */}
           <div className="sticky top-0 z-20 bg-inherit pb-2 border-b border-gray-200 dark:border-gray-700">
             <div className="flex justify-end">
@@ -401,22 +459,7 @@ const WorkRequestModal = ({ workRequest: initialWorkRequest, currentUser, onClos
             {workRequest.category}
           </span>
 
-          {/* Council Edit/Delete
-          {isCouncil && isOwner && (
-            <div className="mt-6 flex gap-3">
-              <button onClick={() => router.push(`/work-request/${workRequest.id}`)}
-                className={`px-3 py-1 text-xs font-medium rounded-md ${
-                  theme === "dark" ? "bg-teal-600 hover:bg-teal-500 text-white" : "bg-teal-500 hover:bg-teal-400 text-white"
-                }`}
-              >Edit</button>
-              <button onClick={() => handleDelete(workRequest.id)}
-                className={`px-3 py-1 text-xs font-medium rounded-md ${
-                  theme === "dark" ? "bg-red-600 text-white hover:bg-red-500" : "bg-red-500 text-white hover:bg-red-400"
-                }`}
-              >Delete</button>
-            </div>
-          )} */}
-
+         
           {/* Council Edit/Delete/Complete */}
           {isCouncil && isOwner && (
             <div className="mt-6 flex flex-wrap gap-3">
@@ -442,6 +485,25 @@ const WorkRequestModal = ({ workRequest: initialWorkRequest, currentUser, onClos
                   ✅ Mark as Completed
                 </button>
               )}
+
+              
+              {workRequest.status === "CLOSED" && (
+                <>
+                  <div className="w-full text-green-600 text-sm font-semibold">
+                    🎉 This work has been marked as <span className="font-bold">Completed</span>.
+                  </div>
+
+                  <button
+                    onClick={handleReopenWork}
+                    className={`px-3 py-1 text-xs font-medium rounded-md ${
+                      theme === "dark" ? "bg-yellow-600 hover:bg-yellow-500 text-white" : "bg-yellow-300 hover:bg-yellow-400 text-black"
+                    }`}
+                  >
+                    🔁 Reopen Work
+                  </button>
+                </>
+              )}
+
             </div>
           )}
 
