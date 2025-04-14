@@ -22,7 +22,7 @@ export async function PUT(request) {
       where: { id: workRequestId },
       data: {
         acceptedBidId: bidId,
-        status: "CLOSED",
+        status: "IN_PROGRESS",
       },
       include: {
         acceptedBid: {

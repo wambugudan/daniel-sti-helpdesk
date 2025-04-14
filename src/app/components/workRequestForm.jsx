@@ -53,13 +53,6 @@ const WorkRequestForm = ({ requestId }) => {
     try {
       const fileURL = data.file && data.file[0] ? await uploadFile(data.file[0]) : data.fileURL || "";
   
-      // const workRequest = {
-      //   title: data.title,
-      //   description: data.description,
-      //   budget: parseFloat(data.budget),
-      //   category: data.category,
-      //   fileURL,
-      // };
 
       const workRequest = {
         title: data.title,
