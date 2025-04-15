@@ -72,7 +72,7 @@ const Submissions = () => {
       {error && <p className="text-red-500">Error: {error}</p>}
 
       {/* 🔁 Switch User Dropdown */}
-      <div className="mb-6 flex items-center gap-4">
+      {/* <div className="mb-6 flex items-center gap-4">
         <label className="text-sm font-medium">Switch User:</label>
         <select
           className="border px-3 py-1 rounded"
@@ -88,7 +88,7 @@ const Submissions = () => {
             </option>
           ))}
         </select>
-      </div>
+      </div> */}
 
       {/* Note for Council */}
       {currentUser?.role === "COUNCIL" && (

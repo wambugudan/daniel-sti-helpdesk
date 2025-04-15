@@ -9,26 +9,23 @@ const mockUsers = [
   { id: "user-expert-02", name: "Tom Barasa", email: "tom.barasa@devhub.co.ke", role: "EXPERT" },
 ];
 
-export const useCurrentUser = () => {
-  const [currentUser, setCurrentUser] = useState(mockUsers[0]);
 
-  // Load user from localStorage (on initial load)
+export const useCurrentUser = () => {
+  const [currentUser, setCurrentUser] = useState(null); // <-- Start with null
+  const [isLoaded, setIsLoaded] = useState(false); // New flag
+
   useEffect(() => {
     const storedUserId = localStorage.getItem("mockUserId");
-    if (storedUserId) {
-      const user = mockUsers.find(u => u.id === storedUserId);
-      if (user) {
-        setCurrentUser(user);
-      }
-    }
+    const user = mockUsers.find(u => u.id === storedUserId) || mockUsers[0];
+    setCurrentUser(user);
+    setIsLoaded(true); // Done loading
   }, []);
 
-  // Save user to localStorage (when it changes)
   useEffect(() => {
     if (currentUser?.id) {
       localStorage.setItem("mockUserId", currentUser.id);
     }
   }, [currentUser]);
 
-  return { currentUser, setCurrentUser, allUsers: mockUsers };
+  return { currentUser, setCurrentUser, allUsers: mockUsers, isLoaded };
 };

@@ -11,14 +11,18 @@ import { Menu, X, Moon, Sun, Bell } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useTheme } from "@/context/ThemeProvider";
 import { useCurrentUser } from "@/hooks/useCurrentUser";
+import { useHasMounted } from "@/hooks/useHasMounted";
 
 const Navbar = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const pathname = usePathname();
   const { theme, toggleTheme } = useTheme();
-  const { currentUser } = useCurrentUser();
+  // const { currentUser } = useCurrentUser();
   const [userRole, setUserRole] = useState(null);
   const [showDropdown, setShowDropdown] = useState(false);
+  const { currentUser, setCurrentUser, allUsers } = useCurrentUser();
+  const hasMounted = useHasMounted(); // to prevent hydration mismatch
+
 
   useEffect(() => {
     setUserRole(currentUser?.role);
@@ -48,13 +52,16 @@ const Navbar = () => {
         ]
       : []),
     ...(userRole === "EXPERT"
-      ? []
+      ? 
+      [
+        { href: "/my-contracts", label: "my contracts" },
+      ]
       : []),
     {
       label: "notifications",
       subLinks: notificationSubLinks,
       badge: totalNotifications,
-    },
+    },    
     { href: "/my-profile", label: "my profile" },
   ];
 
@@ -88,6 +95,29 @@ const Navbar = () => {
           {theme === "dark" ? <Sun size={20} /> : <Moon size={20} />}
         </button>
       </div>
+
+
+      {/* 🔁 Switch User Dropdown (only in development or mock mode) */}
+      {hasMounted && (
+        <div className="my-4 md:my-0 md:ml-auto">
+          <label className="text-sm mr-2 font-medium">Switch User:</label>
+          <select
+            className="border px-3 py-1 rounded text-sm"
+            value={currentUser?.id}
+            onChange={(e) => {
+              const selected = allUsers.find((user) => user.id === e.target.value);
+              if (selected) setCurrentUser(selected);
+            }}
+          >
+            {allUsers.map((user) => (
+              <option key={user.id} value={user.id}>
+                {user.name} ({user.role})
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+
 
       {/* Links */}
       <div
