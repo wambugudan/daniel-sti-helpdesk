@@ -4,6 +4,8 @@ import Footer from "./components/Footer";
 import ClientOnly from "./components/ClientOnly";
 import Navbar from "./components/Navbar"; // Import Navbar component
 import { ThemeProvider } from "@/context/ThemeProvider"; // Import ThemeProvider
+import { Toaster } from "react-hot-toast";
+import { useTheme } from "@/context/ThemeProvider"; // Import useTheme
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -41,7 +43,22 @@ export default function RootLayout({ children }) {
             {/* Wraping with ClientOnly to allow for hydration */}
             <ClientOnly>
               <Navbar />
-            </ClientOnly>            
+            </ClientOnly>   
+
+            {/* Toasts */}
+            <ClientOnly>
+              <Toaster position="top-center" reverseOrder={false} />
+              {/* <Toaster
+                position="top-center"
+                toastOptions={{
+                  style: {
+                    borderRadius: '8px',
+                    background: theme === 'dark' ? '#333' : '#fff',
+                    color: theme === 'dark' ? '#fff' : '#333',
+                  },
+                }}
+              /> */}
+            </ClientOnly>         
             
             <main className="flex-grow container mx-auto px-4 md:px-6 lg:px-8">
               {children}

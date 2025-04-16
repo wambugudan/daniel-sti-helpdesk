@@ -14,10 +14,33 @@ export async function GET(request, context) {
     console.log("Fetching work request with ID:", id, "for user:", userId);
 
 
+    // const workRequest = await prisma.workRequest.findUnique({
+    //   where: { id },
+    //   include: {
+    //     user: true,
+    //     bids: {
+    //       include: {
+    //         user: true,
+    //       },
+    //       orderBy: {
+    //         createdAt: 'desc',
+    //       },
+    //     },
+    //     _count: {
+    //       select: { bids: true },
+    //     },
+    //   },
+    // });
+
     const workRequest = await prisma.workRequest.findUnique({
       where: { id },
       include: {
         user: true,
+        acceptedBid: {                // This fetches the winning bid details
+          include: {
+            user: true,               // Optional: to show who placed the bid
+          },
+        },
         bids: {
           include: {
             user: true,
@@ -31,6 +54,7 @@ export async function GET(request, context) {
         },
       },
     });
+    
     
 
     if (!workRequest) {

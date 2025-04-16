@@ -1,5 +1,6 @@
 'use client';
 import { useTheme } from "@/context/ThemeProvider";
+import { FaMoneyBillWave, FaClock, FaCheckCircle, FaUser } from "react-icons/fa";
 
 const ContractCard = ({ contract, onView }) => {
   const { theme } = useTheme();
@@ -17,44 +18,47 @@ const ContractCard = ({ contract, onView }) => {
 
   return (
     <div
-      className={`relative rounded-lg shadow-md p-4 w-full transition duration-300 hover:shadow-lg ${
-        theme === "dark" ? "bg-gray-800 text-white" : "bg-white text-gray-900"
-      }`}
+      className={`relative rounded-xl shadow-sm p-6 w-full transition duration-300 hover:shadow-lg border 
+      ${theme === "dark" ? "bg-gray-800 text-white border-gray-700" : "bg-white text-gray-900 border-gray-200"}`}
     >
       {/* Status Badge */}
-      <div className={`absolute top-3 right-3 text-xs font-bold px-3 py-1 rounded-full ${statusColor}`}>
+      <div className={`absolute top-4 right-4 text-xs font-semibold px-3 py-1 rounded-full ${statusColor}`}>
         {contract.status.replace("_", " ").toLowerCase().replace(/\b\w/g, c => c.toUpperCase())}
       </div>
 
       {/* Title */}
-      <h3 className="text-lg font-semibold">{contract.title}</h3>
+      <h3 className="text-lg font-semibold mb-3">{contract.title}</h3>
 
-      {/* Council Name */}
-      <p className="text-sm">
-        <strong>Client:</strong> {contract.user?.name || contract.user?.email}
-      </p>
-
-      {/* Budget & Duration */}
-      <p className="text-sm">
-        <strong>Budget:</strong> ${contract.budget}
-      </p>
-      <p className="text-sm">
-        <strong>Duration:</strong> {duration} days
-      </p>
-
-      {/* Accepted Bid Amount */}
-      {contract.acceptedBid && (
-        <p className="text-sm">
-          <strong>My Winning Bid:</strong> ${contract.acceptedBid.amount}
+      {/* Info Grid */}
+      <div className="space-y-2 text-sm">
+        <p className="flex items-center gap-2">
+          <FaUser className="text-gray-500" />
+          <strong>Client:</strong> {contract.user?.name || contract.user?.email}
         </p>
-      )}
+        <p className="flex items-center gap-2">
+          <FaMoneyBillWave className="text-green-500" />
+          <strong>Budget:</strong> ${contract.budget}
+        </p>
+        <p className="flex items-center gap-2">
+          <FaClock className="text-yellow-500" />
+          <strong>Duration:</strong> {duration} days
+        </p>
+        {contract.acceptedBid && (
+          <p className="flex items-center gap-2">
+            <FaCheckCircle className="text-blue-500" />
+            <strong>My Winning Bid:</strong> ${contract.acceptedBid.amount}
+          </p>
+        )}
+      </div>
 
-      {/* View Details Button */}
-      <div className="mt-4 flex justify-end">
+      {/* View Contract Button */}
+      <div className="mt-5 flex justify-end">
         <button
           onClick={() => onView(contract)}
-          className={`px-3 py-1 text-sm font-medium rounded-md ${
-            theme === "dark" ? "bg-blue-600 hover:bg-blue-500 text-white" : "bg-blue-500 hover:bg-blue-400 text-white"
+          className={`px-4 py-2 text-sm font-semibold rounded-md ${
+            theme === "dark"
+              ? "bg-blue-600 hover:bg-blue-500 text-white"
+              : "bg-blue-500 hover:bg-blue-400 text-white"
           }`}
         >
           View Contract

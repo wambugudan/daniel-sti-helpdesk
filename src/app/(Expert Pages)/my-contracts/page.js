@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 // import DataCard from '@/app/components/DataCard';
 import ContractCard from '@/app/components/ContractCard';
-import WorkRequestModal from '@/app/components/WorkRequestModal';
+import ContractModal from '@/app/components/ContractModal';
 
 
 const MyContracts = () => {
@@ -35,7 +35,7 @@ const MyContracts = () => {
     const fetchContracts = async () => {
       setLoading(true);
       try {
-        const res = await fetch(`/api/my-contracts?userId=${currentUser.id}&page=${page}&limit=${limit}`);
+        const res = await fetch(`/api/contract/my-contracts?userId=${currentUser.id}&page=${page}&limit=${limit}`);
         if (!res.ok) throw new Error('Failed to fetch contracts');
         const { data, total } = await res.json();
   
@@ -65,21 +65,7 @@ const MyContracts = () => {
         <p className="text-center text-gray-500 mt-10">You don’t have any accepted contracts yet.</p>
       ) : (
         <div className="grid grid-cols-1 gap-8">
-          {contracts.map((contract) => (
-            // <DataCard
-            //   key={contract.id}
-            //   workRequest={contract}
-            //   currentUser={currentUser}
-            //   showStatus={true}
-            //   viewType="contract"
-            //   onView={async (req) => {
-            //     const res = await fetch(`/api/work-request/${req.id}`, {
-            //       headers: { 'x-user-id': currentUser.id },
-            //     });
-            //     const fullRequest = await res.json();
-            //     setSelectedContract(fullRequest);
-            //   }}
-            // />
+          {contracts.map((contract) => (          
             <ContractCard
                 key={contract.id}
                 contract={contract}
@@ -117,14 +103,19 @@ const MyContracts = () => {
         </button>
       </div>
 
-      {/* Modal */}
+      {/* Contract Modal */}
       {selectedContract && (
-        <WorkRequestModal
-          workRequest={selectedContract}
+        <ContractModal
+          contract={selectedContract}
           currentUser={currentUser}
           onClose={() => setSelectedContract(null)}
+          onCancelled={(id) => {
+            setContracts(prev => prev.filter(c => c.id !== id));
+            setSelectedContract(null);
+          }}
         />
       )}
+
     </div>
   );
 };
