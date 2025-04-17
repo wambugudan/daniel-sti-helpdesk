@@ -1,6 +1,7 @@
 'use client';
 import { useTheme } from "@/context/ThemeProvider";
 import { FaMoneyBillWave, FaClock, FaCheckCircle, FaUser } from "react-icons/fa";
+import CardWrapper from "./CardWrapper";
 
 const ContractCard = ({ contract, onView }) => {
   const { theme } = useTheme();
@@ -17,10 +18,11 @@ const ContractCard = ({ contract, onView }) => {
   }[contract.status];
 
   return (
-    <div
-      className={`relative rounded-xl shadow-sm p-6 w-full transition duration-300 hover:shadow-lg border 
-      ${theme === "dark" ? "bg-gray-800 text-white border-gray-700" : "bg-white text-gray-900 border-gray-200"}`}
-    >
+    // <div
+    //   className={`relative rounded-xl shadow-sm p-6 w-full transition duration-300 hover:shadow-lg border 
+    //   ${theme === "dark" ? "bg-gray-800 text-white border-gray-700" : "bg-white text-gray-900 border-gray-200"}`}
+    // >
+    <CardWrapper>
       {/* Status Badge */}
       <div className={`absolute top-4 right-4 text-xs font-semibold px-3 py-1 rounded-full ${statusColor}`}>
         {contract.status.replace("_", " ").toLowerCase().replace(/\b\w/g, c => c.toUpperCase())}
@@ -64,7 +66,8 @@ const ContractCard = ({ contract, onView }) => {
           View Contract
         </button>
       </div>
-    </div>
+    </CardWrapper>
+    // </div>
   );
 };
 

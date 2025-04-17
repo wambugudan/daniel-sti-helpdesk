@@ -7,6 +7,8 @@ import WorkRequestModal from "./WorkRequestModal";
 import Badge from "./Badge"; 
 import { FaFilePdf, FaFileWord, FaFileImage, FaFileAlt } from "react-icons/fa";
 import clsx from "clsx";
+import CardWrapper from "./CardWrapper";
+
 
 const getFileIcon = (fileURL) => {
   if (!fileURL) return <FaFileAlt className="text-gray-500 text-2xl" />;
@@ -72,11 +74,8 @@ const DataCard = ({ workRequest, currentUser, onView, showStatus = false }) => {
 
 
   return (
-    <div
-      className={`relative shadow-lg rounded-lg p-4 w-full sm:w-3/4 md:w-4/5 lg:w-4/5 xl:w-2/3 mx-auto transition-transform duration-300 hover:scale-105 hover:shadow-lg ${
-        theme === "dark" ? "bg-gray-800 text-white" : "bg-white text-gray-900"
-      }`}      
-    >
+    
+    <CardWrapper>  
       {/* Status Badge */}
       {showStatus && workRequest.status && (
         <div         
@@ -162,7 +161,7 @@ const DataCard = ({ workRequest, currentUser, onView, showStatus = false }) => {
           View Details
         </button>
       </div>
-    </div>
+    </CardWrapper>
   );
 };
 
