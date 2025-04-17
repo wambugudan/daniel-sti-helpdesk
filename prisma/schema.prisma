@@ -57,6 +57,22 @@ model WorkRequest {
   invites     Invite[] @relation("WorkRequestInvites")
 }
 
+// model Bid {
+//   id            String   @id @default(cuid())
+//   userId        String
+//   workRequestId String
+//   amount        Float
+//   message       String?
+//   createdAt     DateTime @default(now())
+
+//   // Relations
+//   user        User        @relation("UserBids", fields: [userId], references: [id], onDelete: Cascade)
+//   workRequest WorkRequest @relation("WorkRequestBids", fields: [workRequestId], references: [id], onDelete: Cascade)
+
+//   // Backward relation from WorkRequest
+//   acceptedIn  WorkRequest? @relation("AcceptedBid")
+// }
+
 model Bid {
   id            String   @id @default(cuid())
   userId        String
@@ -65,6 +81,11 @@ model Bid {
   message       String?
   createdAt     DateTime @default(now())
 
+  // ⬇️ NEW: Submission fields
+  submissionMessage String?
+  submissionFileURL String?
+  submittedAt       DateTime?
+
   // Relations
   user        User        @relation("UserBids", fields: [userId], references: [id], onDelete: Cascade)
   workRequest WorkRequest @relation("WorkRequestBids", fields: [workRequestId], references: [id], onDelete: Cascade)
@@ -72,6 +93,7 @@ model Bid {
   // Backward relation from WorkRequest
   acceptedIn  WorkRequest? @relation("AcceptedBid")
 }
+
 
 model Invite {
   id            String   @id @default(uuid())
