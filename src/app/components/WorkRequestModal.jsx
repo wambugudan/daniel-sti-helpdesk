@@ -10,6 +10,7 @@ import { FaFilePdf, FaFileWord, FaFileImage, FaFileAlt } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";
 import Confetti from "react-confetti";
+import BidForm from "./BidForm";
 
 
 const getFileIcon = (fileURL) => {
@@ -510,44 +511,52 @@ const WorkRequestModal = ({ workRequest: initialWorkRequest, currentUser, onClos
 
           {/* Expert Bidding */}
           {isExpert && (
-            <div className="mt-6 space-y-2">
-              {existingBid ? (
-                <div className="text-sm bg-blue-50 dark:bg-gray-800 border border-blue-200 dark:border-gray-700 p-4 rounded-md">
-                  <p className="text-gray-700 dark:text-gray-300 mb-1">You already placed a bid for this project:</p>
-                  <p className="text-lg font-semibold text-green-600 dark:text-green-400 mb-1">${existingBid.amount}</p>
-                  {existingBid.message ? (
-                    <blockquote className="italic text-gray-600 dark:text-gray-400 border-l-4 border-blue-400 pl-4">
-                      “{existingBid.message}”
-                    </blockquote>
-                  ) : (
-                    <p className="text-sm italic text-gray-500">No message provided.</p>
-                  )}
-                </div>
-              ) : (
-                <>
-                  <input
-                    type="number"
-                    placeholder="Your bid amount"
-                    className="w-full px-3 py-2 border rounded"
-                    value={bidAmount}
-                    onChange={(e) => setBidAmount(e.target.value)}
-                  />
-                  <textarea
-                    placeholder="Message (optional)"
-                    className="w-full px-3 py-2 border rounded"
-                    value={bidMessage}
-                    onChange={(e) => setBidMessage(e.target.value)}
-                  />
-                  <button
-                    disabled={isSubmitting}
-                    onClick={handleBidSubmit}
-                    className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-500 w-full"
-                  >
-                    {isSubmitting ? "Submitting..." : "Submit Bid"}
-                  </button>
-                </>
-              )}
-            </div>
+            // <div className="mt-6 space-y-2">
+            //   {existingBid ? (
+            //     <div className="text-sm bg-blue-50 dark:bg-gray-800 border border-blue-200 dark:border-gray-700 p-4 rounded-md">
+            //       <p className="text-gray-700 dark:text-gray-300 mb-1">You already placed a bid for this project:</p>
+            //       <p className="text-lg font-semibold text-green-600 dark:text-green-400 mb-1">${existingBid.amount}</p>
+            //       {existingBid.message ? (
+            //         <blockquote className="italic text-gray-600 dark:text-gray-400 border-l-4 border-blue-400 pl-4">
+            //           “{existingBid.message}”
+            //         </blockquote>
+            //       ) : (
+            //         <p className="text-sm italic text-gray-500">No message provided.</p>
+            //       )}
+            //     </div>
+            //   ) : (
+            //     <>
+            //       <input
+            //         type="number"
+            //         placeholder="Your bid amount"
+            //         className="w-full px-3 py-2 border rounded"
+            //         value={bidAmount}
+            //         onChange={(e) => setBidAmount(e.target.value)}
+            //       />
+            //       <textarea
+            //         placeholder="Message (optional)"
+            //         className="w-full px-3 py-2 border rounded"
+            //         value={bidMessage}
+            //         onChange={(e) => setBidMessage(e.target.value)}
+            //       />
+            //       <button
+            //         disabled={isSubmitting}
+            //         onClick={handleBidSubmit}
+            //         className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-500 w-full"
+            //       >
+            //         {isSubmitting ? "Submitting..." : "Submit Bid"}
+            //       </button>
+            //     </>
+            //   )}
+            // </div>
+            <BidForm
+              currentUser={currentUser}
+              workRequest={workRequest}
+              onBidSubmitted={async () => {
+                await fetchExistingBid();
+                await fetchWorkRequestDetails();
+              }}
+            />
           )}
         </motion.div>
       </motion.div>
