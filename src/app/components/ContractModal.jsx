@@ -32,9 +32,7 @@ const ContractModal = ({ contract, currentUser, onClose, onCancelled }) => {
   const [file, setFile] = useState(null);
   const [editingSubmission, setEditingSubmission] = useState(false);
   const [submitted, setSubmitted] = useState(!!contract?.acceptedBid?.submissionMessage || !!contract?.acceptedBid?.submissionFileURL);
-  // const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
-
-
+  const [isDetailsExpanded, setIsDetailsExpanded] = useState(false);
 
   
 
@@ -163,7 +161,7 @@ const ContractModal = ({ contract, currentUser, onClose, onCancelled }) => {
         exit={{ opacity: 0 }}
       >
         <motion.div
-          className={`w-full max-w-xl h-[90vh] overflow-y-auto rounded-lg p-6 shadow-lg relative ${
+          className={`w-full max-w-xl max-h-[90vh] overflow-y-auto rounded-lg p-6 shadow-lg relative ${
             theme === "dark" ? "bg-gray-900 text-white" : "bg-white text-gray-900"
           }`}
           initial={{ scale: 0.95, y: 30 }}
@@ -190,37 +188,56 @@ const ContractModal = ({ contract, currentUser, onClose, onCancelled }) => {
             <p><strong>Status:</strong> {contract.status}</p>
           </div>
 
-          <hr className="my-3" />
+          <hr className="my-3" />          
 
-          {/* Description */}
-          <div className="mb-4">
-            <h3 className="font-semibold mb-1">📄 Work Description</h3>
-            <p className="whitespace-pre-line text-sm">{contract.description}</p>
-          </div>
-
-          {/* Attachment */}
-          {contract.fileURL && (
-            <div className="flex items-center gap-2 mb-3">
-              {getFileIcon(contract.fileURL)}              
-
-              <a
-                href={contract.fileURL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-blue-600 underline"
+          <div className="mb-4 border-t pt-4">
+            <div className="flex justify-between items-center mb-2">
+              <h3 className="font-semibold text-base">📝 Contract Details</h3>
+              <button
+                onClick={() => setIsDetailsExpanded(!isDetailsExpanded)}
+                className="text-xs text-blue-500 underline"
               >
-                {contract.fileName || "View File"}
-              </a>
-
+                {isDetailsExpanded ? "Collapse" : "Expand"}
+              </button>
             </div>
-          )}
 
-          {/* Accepted Bid */}
-          <div className="mb-5">
-            <h3 className="font-semibold mb-1">🎯 Your Accepted Bid</h3>
-            <p className="text-green-600 dark:text-green-400 font-bold text-lg">${contract.acceptedBid?.amount}</p>
-            <p className="italic text-sm">{contract.acceptedBid?.message || "No message provided."}</p>
+            {isDetailsExpanded && (
+              <div className="space-y-4 transition-all duration-300">
+                {/* Description */}
+                <div>
+                  <h4 className="font-semibold mb-1">📄 Work Description</h4>
+                  <p className="whitespace-pre-line text-sm">{contract.description}</p>
+                </div>
+
+                {/* Attachment */}
+                {contract.fileURL && (
+                  <div className="flex items-center gap-2">
+                    {getFileIcon(contract.fileURL)}
+                    <a
+                      href={contract.fileURL}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 underline"
+                    >
+                      {contract.fileName || "View File"}
+                    </a>
+                  </div>
+                )}
+
+                {/* Accepted Bid */}
+                <div>
+                  <h4 className="font-semibold mb-1">🎯 Your Accepted Bid</h4>
+                  <p className="text-green-600 dark:text-green-400 font-bold text-lg">
+                    ${contract.acceptedBid?.amount}
+                  </p>
+                  <p className="italic text-sm">
+                    {contract.acceptedBid?.message || "No message provided."}
+                  </p>
+                </div>
+              </div>
+            )}
           </div>
+
 
           {/* Submission Block */}
           {contract.status === "IN_PROGRESS" && isOwner && (
