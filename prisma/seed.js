@@ -21,7 +21,7 @@ async function main() {
       {
         id: 'wr-001',
         title: 'Design a Logo for Municipal Recycling Program',
-        budget: 'KES 20,000',
+        budget: '2000',
         description: 'Looking for a professional logo design to represent the city\'s new recycling initiative.',
         category: 'Graphic Design',
         userId: 'user-council-01',
@@ -33,7 +33,7 @@ async function main() {
       {
         id: 'wr-002',
         title: 'Develop a Mobile App for Public Transport Alerts',
-        budget: 'KES 150,000',
+        budget: '1500',
         description: 'We need an Android and iOS app to send real-time alerts and notifications to commuters in Nairobi.',
         category: 'App Development',
         fileURL: 'https://example.com/specs.pdf',
@@ -46,7 +46,7 @@ async function main() {
       {
         id: 'wr-003',
         title: 'Translation of Health Brochures into Kiswahili',
-        budget: 'KES 30,000',
+        budget: '3000',
         description: 'Translate 15 pages of health education material from English to Kiswahili, maintaining technical accuracy.',
         category: 'Translation',
         userId: 'user-council-03',
@@ -58,7 +58,7 @@ async function main() {
       {
         id: 'wr-004',
         title: 'Create an Awareness Video on Sanitation',
-        budget: 'KES 100,000',
+        budget: '1000',
         description: 'Produce a 2-minute awareness video to promote good sanitation practices in informal settlements.',
         category: 'Video Production',
         fileURL: 'https://example.com/video-brief.docx',
@@ -71,7 +71,7 @@ async function main() {
       {
         id: 'wr-005',
         title: 'Web Portal for Citizen Feedback',
-        budget: 'KES 250,000',
+        budget: '2500',
         description: 'We require a secure web portal where citizens can submit feedback and reports about public services.',
         category: 'Web Development',
         userId: 'user-council-04',

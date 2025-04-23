@@ -1,5 +1,4 @@
-// This file handles the API routes for a specific work request based on its ID.
-// It includes GET, PUT, and DELETE methods to fetch, update, and delete work requests respectively.
+// File: src/app/api/work-request/[id]/route.js
 import prisma from "@/libs/prisma";
 
 export const dynamic = 'force-dynamic';
@@ -14,23 +13,6 @@ export async function GET(request, context) {
     console.log("Fetching work request with ID:", id, "for user:", userId);
 
 
-    // const workRequest = await prisma.workRequest.findUnique({
-    //   where: { id },
-    //   include: {
-    //     user: true,
-    //     bids: {
-    //       include: {
-    //         user: true,
-    //       },
-    //       orderBy: {
-    //         createdAt: 'desc',
-    //       },
-    //     },
-    //     _count: {
-    //       select: { bids: true },
-    //     },
-    //   },
-    // });
 
     const workRequest = await prisma.workRequest.findUnique({
       where: { id },
@@ -39,6 +21,7 @@ export async function GET(request, context) {
         acceptedBid: {                // This fetches the winning bid details
           include: {
             user: true,               // Optional: to show who placed the bid
+            submission: true,
           },
         },
         bids: {

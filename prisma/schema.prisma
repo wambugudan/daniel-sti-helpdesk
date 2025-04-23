@@ -59,6 +59,42 @@ model WorkRequest {
 
 
 
+// model Bid {
+//   id            String   @id @default(cuid())
+//   userId        String
+//   workRequestId String
+//   amount        Float
+//   message       String?
+//   createdAt     DateTime @default(now())
+
+//   // ⬇️ NEW: Submission fields
+//   // submissionMessage String?
+//   // submissionFileURL String?
+//   // submissionFileName String?
+//   // submittedAt       DateTime?
+
+//   // Relations
+//   user        User        @relation("UserBids", fields: [userId], references: [id], onDelete: Cascade)
+//   workRequest WorkRequest @relation("WorkRequestBids", fields: [workRequestId], references: [id], onDelete: Cascade)
+
+//   // Backward relation from WorkRequest
+//   acceptedIn  WorkRequest? @relation("AcceptedBid")
+
+//   Submission Submission[]
+// }
+
+
+// model Submission {
+//   id           String   @id @default(cuid())
+//   message      String
+//   fileURL      String
+//   fileName     String
+//   submittedAt  DateTime @default(now())
+
+//   bidId        String   @unique
+//   bid          Bid      @relation(fields: [bidId], references: [id], onDelete: Cascade)
+// }
+
 model Bid {
   id            String   @id @default(cuid())
   userId        String
@@ -67,18 +103,24 @@ model Bid {
   message       String?
   createdAt     DateTime @default(now())
 
-  // ⬇️ NEW: Submission fields
-  submissionMessage String?
-  submissionFileURL String?
-  submissionFileName String?
-  submittedAt       DateTime?
-
   // Relations
   user        User        @relation("UserBids", fields: [userId], references: [id], onDelete: Cascade)
   workRequest WorkRequest @relation("WorkRequestBids", fields: [workRequestId], references: [id], onDelete: Cascade)
 
-  // Backward relation from WorkRequest
   acceptedIn  WorkRequest? @relation("AcceptedBid")
+
+  submission  Submission?   // ✅ One-to-one submission
+}
+
+model Submission {
+  id           String   @id @default(cuid())
+  message      String
+  fileURL      String
+  fileName     String
+  submittedAt  DateTime @default(now())
+
+  bidId        String   @unique
+  bid          Bid      @relation(fields: [bidId], references: [id], onDelete: Cascade)
 }
 
 
