@@ -137,20 +137,20 @@ const ContractModal = ({ contract, currentUser, onClose, onCancelled }) => {
     }
   };
 
-  const handleMarkAsDone = async () => {
-    try {
-      const res = await fetch("/api/work-request/complete", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ workRequestId: contract.id, userId: currentUser.id }),
-      });
-      if (!res.ok) throw new Error();
-      toast.success("Marked as completed!");
-      onClose();
-    } catch {
-      toast.error("Failed to mark as done.");
-    }
-  };
+  // const handleMarkAsDone = async () => {
+  //   try {
+  //     const res = await fetch("/api/work-request/complete", {
+  //       method: "PUT",
+  //       headers: { "Content-Type": "application/json" },
+  //       body: JSON.stringify({ workRequestId: contract.id, userId: currentUser.id }),
+  //     });
+  //     if (!res.ok) throw new Error();
+  //     toast.success("Marked as completed!");
+  //     onClose();
+  //   } catch {
+  //     toast.error("Failed to mark as done.");
+  //   }
+  // };
 
   return (
     <AnimatePresence>
@@ -275,12 +275,12 @@ const ContractModal = ({ contract, currentUser, onClose, onCancelled }) => {
                   >
                     ✏️ Edit Submission
                   </button>
-                  <button
+                  {/* <button
                     onClick={handleMarkAsDone}
                     className="ml-3 px-3 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-500"
                   >
                     ✅ Mark as Done
-                  </button>
+                  </button> */}
                 </div>
               ) : (
                 <>
