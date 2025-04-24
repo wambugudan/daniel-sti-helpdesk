@@ -44,6 +44,10 @@ const WorkRequestModal = ({ workRequest: initialWorkRequest, currentUser, onClos
   const modalRef = useRef(null);
   const [modalSize, setModalSize] = useState({ width: 0, height: 0 });
 
+  const [feedbackMessage, setFeedbackMessage] = useState("");
+  const [feedbackStatus, setFeedbackStatus] = useState(null); // "APPROVED" or "REJECTED"
+  const [isSubmittingFeedback, setIsSubmittingFeedback] = useState(false);
+
 
 
   const isOwner = currentUser?.id === workRequest.userId;
@@ -105,18 +109,6 @@ const WorkRequestModal = ({ workRequest: initialWorkRequest, currentUser, onClos
     }));
   };
 
-
-  // useEffect(() => {
-  //   if (modalRef.current) {
-  //     const observer = new ResizeObserver(() => {
-  //       const { offsetWidth, offsetHeight } = modalRef.current;
-  //       setModalSize({ width: offsetWidth, height: offsetHeight });
-  //     });
-  //     observer.observe(modalRef.current);
-  
-  //     return () => observer.disconnect();
-  //   }
-  // }, []); 
 
   useEffect(() => {
     if (!modalRef.current) return;
@@ -195,6 +187,55 @@ const WorkRequestModal = ({ workRequest: initialWorkRequest, currentUser, onClos
       setIsSubmitting(false);
     }
   };
+
+
+  // This function is called when the council user wants to submit feedback on the expert's submission.
+  const handleFeedbackSubmit = async () => {
+
+    const res = await fetch("/api/submission/feedback/create", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        submissionId: workRequest.acceptedBid?.submission?.id,
+        feedback: feedbackMessage.trim(),
+        status: feedbackStatus,
+        userId: currentUser.id,
+      }),
+    });
+    
+    if (!feedbackStatus || !feedbackMessage.trim()) {
+      toast.error("Select status and write feedback.");
+      return;
+    }
+  
+    try {
+      setIsSubmittingFeedback(true);
+      const res = await fetch("/api/submission/feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          workRequestId: workRequest.id,
+          submissionId: workRequest.acceptedBid?.submission?.id,
+          feedback: feedbackMessage.trim(),
+          status: feedbackStatus,
+          userId: currentUser.id,
+        }),
+      });
+  
+      if (!res.ok) throw new Error("Feedback failed");
+  
+      toast.success("Feedback submitted successfully!");
+      setFeedbackMessage("");
+      setFeedbackStatus(null);
+      await fetchWorkRequestDetails(); // refresh updated feedback
+    } catch (error) {
+      console.error("Feedback error:", error);
+      toast.error("Failed to send feedback.");
+    } finally {
+      setIsSubmittingFeedback(false);
+    }
+  };
+  
 
   const handleDelete = async (id) => {
     if (!confirm("Are you sure you want to delete this work request?")) return;
@@ -555,6 +596,46 @@ const WorkRequestModal = ({ workRequest: initialWorkRequest, currentUser, onClos
                   </div>
                 </div>
               )}
+              
+              {/* Council Feedback to submission by Expert */}
+              {isCouncil && isOwner && workRequest.status === "IN_PROGRESS" && workRequest.acceptedBid?.submission && (
+                <div className="mt-6 border-t pt-4">
+                  <h3 className="font-semibold mb-2">🗣️ Council Feedback</h3>
+                  
+                  <div className="flex flex-wrap gap-2 mb-2">
+                    <button
+                      className={`px-3 py-1 text-xs rounded ${feedbackStatus === "APPROVED" ? "bg-green-600 text-white" : "bg-gray-200"}`}
+                      onClick={() => setFeedbackStatus("APPROVED")}
+                    >
+                      ✅ Approve
+                    </button>
+                    <button
+                      className={`px-3 py-1 text-xs rounded ${feedbackStatus === "CHANGES_REQUESTED" ? "bg-yellow-500 text-white" : "bg-gray-200"}`}
+                      onClick={() => setFeedbackStatus("CHANGES_REQUESTED")}
+                    >
+                      🛠️ Request Changes
+                    </button>
+                  </div>
+
+                  <textarea
+                    rows={3}
+                    placeholder="Write feedback..."
+                    value={feedbackMessage}
+                    onChange={(e) => setFeedbackMessage(e.target.value)}
+                    className="w-full border rounded p-2 text-sm mb-2"
+                  />
+
+                  <button
+                    onClick={handleFeedbackSubmit}
+                    disabled={isSubmittingFeedback}
+                    className="px-4 py-2 text-sm font-semibold rounded bg-blue-600 text-white hover:bg-blue-500"
+                  >
+                    {isSubmittingFeedback ? "Submitting..." : "Send Feedback"}
+                  </button>
+                </div>
+              )}
+
+
 
 
               {/* ✅ Mark as Completed Button */}

@@ -24,6 +24,9 @@ model User {
 
   // Invites received by an expert
   receivedInvites Invite[] @relation("ExpertInvites")
+
+  // Submissions made by the expert
+  submissionFeedbacks SubmissionFeedback[] @relation("CouncilFeedback")
 }
 
 model WorkRequest {
@@ -57,44 +60,8 @@ model WorkRequest {
   invites     Invite[] @relation("WorkRequestInvites")
 }
 
-
-
-// model Bid {
-//   id            String   @id @default(cuid())
-//   userId        String
-//   workRequestId String
-//   amount        Float
-//   message       String?
-//   createdAt     DateTime @default(now())
-
-//   // ⬇️ NEW: Submission fields
-//   // submissionMessage String?
-//   // submissionFileURL String?
-//   // submissionFileName String?
-//   // submittedAt       DateTime?
-
-//   // Relations
-//   user        User        @relation("UserBids", fields: [userId], references: [id], onDelete: Cascade)
-//   workRequest WorkRequest @relation("WorkRequestBids", fields: [workRequestId], references: [id], onDelete: Cascade)
-
-//   // Backward relation from WorkRequest
-//   acceptedIn  WorkRequest? @relation("AcceptedBid")
-
-//   Submission Submission[]
-// }
-
-
-// model Submission {
-//   id           String   @id @default(cuid())
-//   message      String
-//   fileURL      String
-//   fileName     String
-//   submittedAt  DateTime @default(now())
-
-//   bidId        String   @unique
-//   bid          Bid      @relation(fields: [bidId], references: [id], onDelete: Cascade)
-// }
-
+// This model represents the bids placed by experts on work requests
+// It includes a one-to-one relationship with the Submission model
 model Bid {
   id            String   @id @default(cuid())
   userId        String
@@ -112,6 +79,9 @@ model Bid {
   submission  Submission?   // ✅ One-to-one submission
 }
 
+
+// This model represents the submission made by an expert for a specific bid
+// It includes a one-to-one relationship with the Bid model
 model Submission {
   id           String   @id @default(cuid())
   message      String
@@ -119,11 +89,16 @@ model Submission {
   fileName     String
   submittedAt  DateTime @default(now())
 
+
   bidId        String   @unique
   bid          Bid      @relation(fields: [bidId], references: [id], onDelete: Cascade)
+
+  feedbacks    SubmissionFeedback[] 
 }
 
 
+// This model represents the invites sent by councils to experts
+// It includes a one-to-one relationship with the WorkRequest model
 model Invite {
   id            String   @id @default(uuid())
   message       String?
@@ -138,6 +113,24 @@ model Invite {
   expert      User        @relation("ExpertInvites", fields: [expertId], references: [id], onDelete: Cascade)
   workRequest WorkRequest @relation("WorkRequestInvites", fields: [workRequestId], references: [id], onDelete: Cascade)
 }
+
+
+// This model represents the feedback given by councils on submissions made by experts
+// It includes a one-to-one relationship with the Submission model
+// It also includes a many-to-one relationship with the User model (Council)
+model SubmissionFeedback {
+  id             String   @id @default(cuid())
+  submissionId   String
+  status         FeedbackStatus @default(PENDING)
+  comment        String
+  createdAt      DateTime @default(now())
+  councilId      String
+
+  submission     Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
+  council        User       @relation("CouncilFeedback", fields: [councilId], references: [id], onDelete: Cascade)
+}
+
+
 
 enum Role {
   COUNCIL
@@ -156,3 +149,11 @@ enum WorkRequestStatus {
   IN_PROGRESS
   CLOSED
 }
+
+// Enum for Submission feedback status
+enum FeedbackStatus {
+  PENDING     // Council requested corrections
+  APPROVED    // Council accepted the submission
+  REJECTED    // Council permanently rejected the submission
+}
+
