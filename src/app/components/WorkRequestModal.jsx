@@ -1,6 +1,4 @@
 // Description: A modal component for displaying and interacting with work requests in a project management application. 
-// It allows users to view details, place bids, and manage requests based on their roles (Council or Expert). 
-// The modal is styled using Tailwind CSS and includes animations using Framer Motion.
 // File: src/app/components/WorkRequestModal.jsx
 'use client';
 
@@ -108,17 +106,34 @@ const WorkRequestModal = ({ workRequest: initialWorkRequest, currentUser, onClos
   };
 
 
-  useEffect(() => {
-    if (modalRef.current) {
-      const observer = new ResizeObserver(() => {
-        const { offsetWidth, offsetHeight } = modalRef.current;
-        setModalSize({ width: offsetWidth, height: offsetHeight });
-      });
-      observer.observe(modalRef.current);
+  // useEffect(() => {
+  //   if (modalRef.current) {
+  //     const observer = new ResizeObserver(() => {
+  //       const { offsetWidth, offsetHeight } = modalRef.current;
+  //       setModalSize({ width: offsetWidth, height: offsetHeight });
+  //     });
+  //     observer.observe(modalRef.current);
   
-      return () => observer.disconnect();
-    }
-  }, []); 
+  //     return () => observer.disconnect();
+  //   }
+  // }, []); 
+
+  useEffect(() => {
+    if (!modalRef.current) return;
+  
+    const observer = new ResizeObserver((entries) => {
+      const modal = entries[0]?.target;
+      if (modal) {
+        const { offsetWidth, offsetHeight } = modal;
+        setModalSize({ width: offsetWidth, height: offsetHeight });
+      }
+    });
+  
+    observer.observe(modalRef.current);
+  
+    return () => observer.disconnect();
+  }, []);
+  
 
 
 
@@ -368,96 +383,7 @@ const WorkRequestModal = ({ workRequest: initialWorkRequest, currentUser, onClos
             </div>
           )}
 
-          {/* Bids (Council View Only) */}
-          {isCouncil && isOwner && Array.isArray(workRequest.bids) && (
-            <div className="mt-6">
-              <div className="flex items-center justify-between mb-2">
-                <h3 className="text-sm font-semibold">
-                  {workRequest.bids.length > 0
-                    ? `${workRequest.bids.length} ${workRequest.bids.length === 1 ? "Bid" : "Bids"} Received`
-                    : "No bids yet"}
-                </h3>
-                <button onClick={() => setShowBids(!showBids)} className="text-xs text-blue-600 hover:underline">
-                  {showBids ? "Hide Bids" : "Show Bids"}
-                </button>
-              </div>          
-
-              {showBids && (
-                <div className="space-y-3 max-h-60 overflow-y-auto pr-2">
-                  
-                  {workRequest.bids.map((bid) => {
-                    const isAccepted = workRequest.acceptedBidId === bid.id;
-                    const hasSubmission = !!bid.submissionMessage || !!bid.submissionFileURL;
-
-                    return (
-                      <div
-                        key={bid.id}
-                        className={`relative flex flex-col justify-between rounded-md p-3 border ${
-                          theme === "dark" ? "border-gray-700 bg-gray-800" : "border-gray-200 bg-gray-100"
-                        }`}
-                      >
-                        {/* Bid Header */}
-                        <div>
-                          <p className="text-sm font-medium">
-                            💬 {bid.user?.name || "Expert"} - ${bid.amount}
-                          </p>
-                          <p className="text-xs text-gray-500">{new Date(bid.createdAt).toLocaleString()}</p>
-
-                          {/* Bid Message */}
-                          {bid.message && (
-                            <>
-                              <p className="mt-1 text-sm">
-                                {expandedBids[bid.id]
-                                  ? bid.message
-                                  : bid.message.length > 200
-                                  ? `${bid.message.slice(0, 200)}...`
-                                  : bid.message}
-                              </p>
-                              {bid.message.length > 200 && (
-                                <button
-                                  onClick={() => toggleExpand(bid.id)}
-                                  className="text-xs text-blue-600 hover:underline mt-1"
-                                >
-                                  {expandedBids[bid.id] ? "Show less" : "Read more"}
-                                </button>
-                              )}
-                            </>
-                          )}
-                        </div>                        
-
-                        {/* Action Buttons */}
-                        <div className="mt-3 flex justify-end items-center gap-3">
-                          {isAccepted ? (
-                            <>
-                              <span className="text-green-700 text-xs font-bold">✅ Accepted</span>
-                              <button
-                                onClick={() => {
-                                  const confirmed = window.confirm("Are you sure you want to undo the accepted bid?");
-                                  if (confirmed) handleUndoAcceptedBid(bid.id);
-                                }}
-                                className="text-xs px-2 py-1 rounded bg-red-600 text-white hover:bg-red-500"
-                              >
-                                Undo
-                              </button>
-                            </>
-                          ) : !workRequest.acceptedBidId ? (
-                            <button
-                              onClick={() => handleAcceptBid(bid.id)}
-                              className="text-xs px-3 py-1 rounded bg-green-600 text-white hover:bg-green-500"
-                            >
-                              Accept Bid
-                            </button>
-                          ) : null}
-                        </div>
-                      </div>
-                    );
-                  })}
-
-                </div>
-              )}
-
-            </div>
-          )}  
+          
           
 
           <span className="inline-block mt-4 px-3 py-1 text-xs bg-teal-100 text-teal-700 rounded-full">
@@ -494,41 +420,142 @@ const WorkRequestModal = ({ workRequest: initialWorkRequest, currentUser, onClos
                 </button>
               </div>
 
-              {/* 📬 Expert Submission Block - Below Edit/Delete */}
-              {workRequest.acceptedBid?.Submission && (
+              {/* Bids (Council View Only) */}
+              {isCouncil && isOwner && Array.isArray(workRequest.bids) && (
+                <div className="mt-6">
+                  <div className="flex items-center justify-between mb-2">
+                    <h3 className="text-sm font-semibold">
+                      {workRequest.bids.length > 0
+                        ? `${workRequest.bids.length} ${workRequest.bids.length === 1 ? "Bid" : "Bids"} Received`
+                        : "No bids yet"}
+                    </h3>
+                    <button onClick={() => setShowBids(!showBids)} className="text-xs text-blue-600 hover:underline">
+                      {showBids ? "Hide Bids" : "Show Bids"}
+                    </button>
+                  </div>          
+
+                  {showBids && (
+                    <div className="space-y-3 max-h-60 overflow-y-auto pr-2">
+                      
+                      {workRequest.bids.map((bid) => {
+                        const isAccepted = workRequest.acceptedBidId === bid.id;
+                        const hasSubmission = !!bid.submissionMessage || !!bid.submissionFileURL;
+
+                        return (
+                          <div
+                            key={bid.id}
+                            className={`relative flex flex-col justify-between rounded-md p-3 border ${
+                              theme === "dark" ? "border-gray-700 bg-gray-800" : "border-gray-200 bg-gray-100"
+                            }`}
+                          >
+                            {/* Bid Header */}
+                            <div>
+                              <p className="text-sm font-medium">
+                                💬 {bid.user?.name || "Expert"} - ${bid.amount}
+                              </p>
+                              <p className="text-xs text-gray-500">{new Date(bid.createdAt).toLocaleString()}</p>
+
+                              {/* Bid Message */}
+                              {bid.message && (
+                                <>
+                                  <p className="mt-1 text-sm">
+                                    {expandedBids[bid.id]
+                                      ? bid.message
+                                      : bid.message.length > 200
+                                      ? `${bid.message.slice(0, 200)}...`
+                                      : bid.message}
+                                  </p>
+                                  {bid.message.length > 200 && (
+                                    <button
+                                      onClick={() => toggleExpand(bid.id)}
+                                      className="text-xs text-blue-600 hover:underline mt-1"
+                                    >
+                                      {expandedBids[bid.id] ? "Show less" : "Read more"}
+                                    </button>
+                                  )}
+                                </>
+                              )}
+                            </div>                        
+
+                            {/* Action Buttons */}
+                            <div className="mt-3 flex justify-end items-center gap-3">
+                              {isAccepted ? (
+                                <>
+                                  <span className="text-green-700 text-xs font-bold">✅ Accepted</span>
+                                  <button
+                                    onClick={() => {
+                                      const confirmed = window.confirm("Are you sure you want to undo the accepted bid?");
+                                      if (confirmed) handleUndoAcceptedBid(bid.id);
+                                    }}
+                                    className="text-xs px-2 py-1 rounded bg-red-600 text-white hover:bg-red-500"
+                                  >
+                                    Undo
+                                  </button>
+                                </>
+                              ) : !workRequest.acceptedBidId ? (
+                                <button
+                                  onClick={() => handleAcceptBid(bid.id)}
+                                  className="text-xs px-3 py-1 rounded bg-green-600 text-white hover:bg-green-500"
+                                >
+                                  Accept Bid
+                                </button>
+                              ) : null}
+                            </div>
+                          </div>
+                        );
+                      })}
+
+                    </div>
+                  )}
+
+                </div>
+              )}               
+
+              {/* 📬 Expert Submission Block */}
+              {workRequest.acceptedBid?.submission && (
                 <div className="border-t pt-4">
                   <h3 className="font-semibold mb-2 text-gray-800 dark:text-gray-100">📬 Expert Submission</h3>
 
                   <div className="bg-yellow-50 dark:bg-gray-800 border rounded p-4 text-sm">
+                    {/* 👤 Expert Details */}
+                    <p className="mb-2">
+                      <strong>Submitted by:</strong>{" "}
+                      <span className="text-gray-800 dark:text-gray-200 font-medium">
+                        {workRequest.acceptedBid.user?.name || "Unnamed Expert"}
+                      </span>{" "}
+                      <span className="text-gray-500 text-xs">({workRequest.acceptedBid.user?.email})</span>
+                    </p>
+
                     <p className="mb-2">
                       <strong>Message:</strong>{" "}
                       <span className="italic text-gray-800 dark:text-gray-300">
-                        {workRequest.acceptedBid.Submission?.message}
+                        {workRequest.acceptedBid.submission?.message}
                       </span>
                     </p>
 
-                    {workRequest.acceptedBid.Submission?.fileURL && (
+                    {workRequest.acceptedBid.submission?.fileURL && (
                       <p className="mb-2">
                         <strong>File:</strong>{" "}
                         <a
-                          href={workRequest.acceptedBid.Submission?.fileURL}
+                          href={workRequest.acceptedBid.submission?.fileURL}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="text-blue-600 underline"
                         >
-                          {workRequest.acceptedBid.Submission?.fileName || "View Submitted File"}
+                          {workRequest.acceptedBid.submission?.fileName || "View Submitted File"}
                         </a>
                       </p>
                     )}
 
-                    {workRequest.acceptedBid.submittedAt && (
+                    {workRequest.acceptedBid.submission?.submittedAt && (
                       <p className="text-xs text-gray-500">
-                        Submitted on {new Date(workRequest.Submission?.submittedAt).toLocaleString()}
+                        Submitted on {new Date(workRequest.acceptedBid.submission.submittedAt).toLocaleString()}
                       </p>
                     )}
                   </div>
                 </div>
               )}
+
 
               {/* ✅ Mark as Completed Button */}
               {workRequest.status === "IN_PROGRESS" && (
@@ -627,326 +654,4 @@ export default WorkRequestModal;
 
 
 
-// File: src/app/components/WorkRequestModal.jsx
 
-// 'use client';
-
-// import { useState, useEffect, useRef } from "react";
-// import { useRouter } from "next/navigation";
-// import { useTheme } from "@/context/ThemeProvider";
-// import { FaFilePdf, FaFileWord, FaFileImage, FaFileAlt } from "react-icons/fa";
-// import { motion, AnimatePresence } from "framer-motion";
-// import toast from "react-hot-toast";
-// import Confetti from "react-confetti";
-// import BidForm from "./BidForm";
-
-// const getFileIcon = (fileURL) => {
-//   if (!fileURL) return <FaFileAlt className="text-gray-500 text-2xl" />;
-//   const ext = fileURL.split(".").pop().toLowerCase();
-//   switch (ext) {
-//     case "pdf": return <FaFilePdf className="text-red-500 text-2xl" />;
-//     case "doc":
-//     case "docx": return <FaFileWord className="text-blue-500 text-2xl" />;
-//     case "jpg":
-//     case "jpeg":
-//     case "png": return <FaFileImage className="text-green-500 text-2xl" />;
-//     default: return <FaFileAlt className="text-gray-500 text-2xl" />;
-//   }
-// };
-
-// const WorkRequestModal = ({ workRequest: initialWorkRequest, currentUser, onClose, onDeleted }) => {
-//   const router = useRouter();
-//   const { theme } = useTheme();
-
-//   const [workRequest, setWorkRequest] = useState(initialWorkRequest);
-//   const [showBids, setShowBids] = useState(false);
-//   const [expandedBids, setExpandedBids] = useState({});
-//   const [accepting, setAccepting] = useState(false);
-//   const [showConfetti, setShowConfetti] = useState(false);
-
-//   const modalRef = useRef(null);
-//   const [modalSize, setModalSize] = useState({ width: 0, height: 0 });
-
-//   const isOwner = currentUser?.id === workRequest.userId;
-//   const isCouncil = currentUser?.role === "COUNCIL";
-//   const isExpert = currentUser?.role === "EXPERT";
-
-//   const duration =
-//     workRequest.deadline && workRequest.createdAt
-//       ? Math.ceil((new Date(workRequest.deadline) - new Date(workRequest.createdAt)) / (1000 * 60 * 60 * 24))
-//       : null;
-
-//   const fetchWorkRequestDetails = async () => {
-//     if (!initialWorkRequest?.id || !currentUser?.id) return;
-//     try {
-//       const res = await fetch(`/api/work-request/${initialWorkRequest.id}`, {
-//         headers: {
-//           'x-user-id': currentUser.id,
-//         },
-//       });
-//       if (!res.ok) return;
-//       const latest = await res.json();
-//       setWorkRequest(latest);
-//     } catch (err) {
-//       console.error("❌ Error fetching work request:", err);
-//     }
-//   };
-
-//   const handleAcceptBid = async (bidId) => {
-//     setAccepting(true);
-//     try {
-//       const res = await fetch(`/api/bid/accept`, {
-//         method: "PUT",
-//         headers: { "Content-Type": "application/json" },
-//         body: JSON.stringify({
-//           workRequestId: workRequest.id,
-//           bidId,
-//           userId: currentUser.id,
-//         }),
-//       });
-
-//       if (!res.ok) throw new Error("Failed to accept bid");
-
-//       toast.success("Bid accepted!");
-//       await fetchWorkRequestDetails();
-//     } catch (error) {
-//       toast.error("Error accepting bid");
-//       console.error("❌ Accept bid error:", error);
-//     } finally {
-//       setAccepting(false);
-//     }
-//   };
-
-//   const handleUndoAcceptedBid = async (bidId) => {
-//     setAccepting(true);
-//     try {
-//       const res = await fetch(`/api/bid/unaccept`, {
-//         method: "PUT",
-//         headers: { "Content-Type": "application/json" },
-//         body: JSON.stringify({
-//           workRequestId: workRequest.id,
-//           userId: currentUser.id,
-//         }),
-//       });
-
-//       if (!res.ok) throw new Error("Failed to undo accepted bid");
-
-//       toast.success("Acceptance revoked");
-//       await fetchWorkRequestDetails();
-//     } catch (error) {
-//       toast.error("Error revoking acceptance");
-//     } finally {
-//       setAccepting(false);
-//     }
-//   };
-
-//   const handleCompleteWork = async () => {
-//     if (!confirm("Are you sure this work is fully completed?")) return;
-
-//     try {
-//       const res = await fetch("/api/work-request/complete", {
-//         method: "PUT",
-//         headers: { "Content-Type": "application/json" },
-//         body: JSON.stringify({
-//           workRequestId: workRequest.id,
-//           userId: currentUser.id,
-//         }),
-//       });
-
-//       if (!res.ok) throw new Error("Failed to mark as completed");
-
-//       toast.success("🎉 Work marked as completed!");
-//       setShowConfetti(true);
-//       setTimeout(() => setShowConfetti(false), 3500);
-//       await fetchWorkRequestDetails();
-//     } catch (error) {
-//       toast.error("Error updating status");
-//     }
-//   };
-
-//   const handleReopenWork = async () => {
-//     if (!confirm("Reopen this work and mark it as In Progress?")) return;
-
-//     try {
-//       const res = await fetch("/api/work-request/reopen", {
-//         method: "PUT",
-//         headers: { "Content-Type": "application/json" },
-//         body: JSON.stringify({
-//           workRequestId: workRequest.id,
-//           userId: currentUser.id,
-//         }),
-//       });
-
-//       if (!res.ok) throw new Error("Failed to reopen work");
-
-//       toast.success("Work reopened!");
-//       await fetchWorkRequestDetails();
-//     } catch (error) {
-//       toast.error("Error reopening work");
-//     }
-//   };
-
-//   useEffect(() => {
-//     if (modalRef.current) {
-//       const observer = new ResizeObserver(() => {
-//         const { offsetWidth, offsetHeight } = modalRef.current;
-//         setModalSize({ width: offsetWidth, height: offsetHeight });
-//       });
-//       observer.observe(modalRef.current);
-//       return () => observer.disconnect();
-//     }
-//   }, []);
-
-//   useEffect(() => {
-//     document.body.style.overflow = "hidden";
-//     if (isCouncil && currentUser?.id && initialWorkRequest?.id) {
-//       fetchWorkRequestDetails();
-//     }
-//     const handleEscape = (e) => {
-//       if (e.key === "Escape") onClose();
-//     };
-//     document.addEventListener("keydown", handleEscape);
-//     return () => {
-//       document.body.style.overflow = "auto";
-//       document.removeEventListener("keydown", handleEscape);
-//     };
-//   }, [currentUser?.id, initialWorkRequest?.id]);
-
-//   const toggleExpand = (bidId) => {
-//     setExpandedBids((prev) => ({
-//       ...prev,
-//       [bidId]: !prev[bidId],
-//     }));
-//   };
-
-//   return (
-//     <AnimatePresence>
-//       <motion.div className="fixed inset-0 bg-black bg-opacity-50 backdrop-blur-sm flex justify-center items-center z-50 overflow-y-auto"
-//         initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}
-//       >
-//         <motion.div
-//           initial={{ scale: 0.9, y: 40 }}
-//           animate={{ scale: 1, y: 0 }}
-//           exit={{ scale: 0.9, y: 40 }}
-//           transition={{ duration: 0.2 }}
-//           ref={modalRef}
-//           className={`rounded-lg shadow-lg w-full max-w-2xl p-6 relative ${
-//             theme === "dark" ? "bg-gray-900 text-white" : "bg-white text-gray-900"
-//           }`}
-//           style={{ maxHeight: "90vh", overflowY: "auto" }}
-//         >
-//           {workRequest.status === "CLOSED" && showConfetti && (
-//             <div className="absolute inset-0 z-40 pointer-events-none">
-//               <Confetti
-//                 width={modalSize.width}
-//                 height={modalSize.height}
-//                 numberOfPieces={200}
-//                 recycle={false}
-//               />
-//             </div>
-//           )}
-
-//           <div className="sticky top-0 z-20 bg-inherit pb-2 border-b border-gray-200 dark:border-gray-700">
-//             <div className="flex justify-end">
-//               <button onClick={onClose} className={`text-lg px-2 py-1 rounded hover:text-red-500 ${
-//                 theme === "dark" ? "text-gray-300" : "text-gray-700"
-//               }`}>✕</button>
-//             </div>
-
-//             <h4 className="text-sm font-semibold">
-//               {workRequest.user?.name || workRequest.user?.email || "Unknown User"}
-//             </h4>
-//             <h2 className="text-xl font-bold mt-2">{workRequest.title}</h2>
-//           </div>
-
-//           <p className={`mt-4 text-sm ${theme === "dark" ? "text-gray-300" : "text-gray-700"} whitespace-pre-line`}>
-//             {workRequest.description}
-//           </p>
-
-//           {/* Submission Display */}
-//           {workRequest.acceptedBid?.Submission && (
-//             <div className="mt-6 border-t pt-4">
-//               <h3 className="font-semibold mb-2">📬 Expert Submission</h3>
-//               <div className="bg-yellow-50 dark:bg-gray-800 border rounded p-4 text-sm">
-//                 <p className="mb-2">
-//                   <strong>Message:</strong>{" "}
-//                   <span className="italic text-gray-800 dark:text-gray-300">
-//                     {workRequest.acceptedBid.Submission.message}
-//                   </span>
-//                 </p>
-
-//                 {workRequest.acceptedBid.Submission.fileURL && (
-//                   <p className="mb-2">
-//                     <strong>File:</strong>{" "}
-//                     <a
-//                       href={workRequest.acceptedBid.Submission.fileURL}
-//                       target="_blank"
-//                       rel="noopener noreferrer"
-//                       className="text-blue-600 underline"
-//                     >
-//                       {workRequest.acceptedBid.Submission.fileName || "View Submitted File"}
-//                     </a>
-//                   </p>
-//                 )}
-
-//                 {workRequest.acceptedBid.Submission.submittedAt && (
-//                   <p className="text-xs text-gray-500">
-//                     Submitted on {new Date(workRequest.acceptedBid.Submission.submittedAt).toLocaleString()}
-//                   </p>
-//                 )}
-//               </div>
-//             </div>
-//           )}
-
-//           {/* Mark as Completed */}
-//           {isCouncil && isOwner && workRequest.status === "IN_PROGRESS" && (
-//             <div className="mt-6">
-//               <button
-//                 onClick={handleCompleteWork}
-//                 className={`px-3 py-1 text-xs font-medium rounded-md ${
-//                   theme === "dark"
-//                     ? "bg-green-700 hover:bg-green-600 text-white"
-//                     : "bg-green-600 hover:bg-green-500 text-white"
-//                 }`}
-//               >
-//                 ✅ Mark as Completed
-//               </button>
-//             </div>
-//           )}
-
-//           {/* Reopen Option */}
-//           {isCouncil && isOwner && workRequest.status === "CLOSED" && (
-//             <div className="mt-6">
-//               <div className="text-green-600 font-semibold text-sm mb-2">
-//                 🎉 This work has been marked as <strong>Completed</strong>.
-//               </div>
-//               <button
-//                 onClick={handleReopenWork}
-//                 className={`px-3 py-1 text-xs font-medium rounded-md ${
-//                   theme === "dark"
-//                     ? "bg-yellow-600 hover:bg-yellow-500 text-white"
-//                     : "bg-yellow-300 hover:bg-yellow-400 text-black"
-//                 }`}
-//               >
-//                 🔁 Reopen Work
-//               </button>
-//             </div>
-//           )}
-
-//           {/* Bid Form for Experts */}
-//           {isExpert && (
-//             <div className="mt-6">
-//               <BidForm
-//                 currentUser={currentUser}
-//                 workRequest={workRequest}
-//                 onBidSubmitted={fetchWorkRequestDetails}
-//               />
-//             </div>
-//           )}
-//         </motion.div>
-//       </motion.div>
-//     </AnimatePresence>
-//   );
-// };
-
-// export default WorkRequestModal;
