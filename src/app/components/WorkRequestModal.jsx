@@ -190,19 +190,53 @@ const WorkRequestModal = ({ workRequest: initialWorkRequest, currentUser, onClos
 
 
   // This function is called when the council user wants to submit feedback on the expert's submission.
-  const handleFeedbackSubmit = async () => {
+  // const handleFeedbackSubmit = async () => {
 
-    const res = await fetch("/api/submission/feedback/create", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        submissionId: workRequest.acceptedBid?.submission?.id,
-        feedback: feedbackMessage.trim(),
-        status: feedbackStatus,
-        userId: currentUser.id,
-      }),
-    });
+  //   const res = await fetch("/api/submission/feedback/create", {
+  //     method: "POST",
+  //     headers: { "Content-Type": "application/json" },
+  //     body: JSON.stringify({
+  //       submissionId: workRequest.acceptedBid?.submission?.id,
+  //       feedback: feedbackMessage.trim(),
+  //       status: feedbackStatus,
+  //       userId: currentUser.id,
+  //     }),
+  //   });
     
+  //   if (!feedbackStatus || !feedbackMessage.trim()) {
+  //     toast.error("Select status and write feedback.");
+  //     return;
+  //   }
+  
+  //   try {
+  //     setIsSubmittingFeedback(true);
+  //     const res = await fetch("/api/submission/feedback", {
+  //       method: "POST",
+  //       headers: { "Content-Type": "application/json" },
+  //       body: JSON.stringify({
+  //         workRequestId: workRequest.id,
+  //         submissionId: workRequest.acceptedBid?.submission?.id,
+  //         feedback: feedbackMessage.trim(),
+  //         status: feedbackStatus,
+  //         userId: currentUser.id,
+  //       }),
+  //     });
+  
+  //     if (!res.ok) throw new Error("Feedback failed");
+  
+  //     toast.success("Feedback submitted successfully!");
+  //     setFeedbackMessage("");
+  //     setFeedbackStatus(null);
+  //     await fetchWorkRequestDetails(); // refresh updated feedback
+  //   } catch (error) {
+  //     console.error("Feedback error:", error);
+  //     toast.error("Failed to send feedback.");
+  //   } finally {
+  //     setIsSubmittingFeedback(false);
+  //   }
+  // };
+
+  const handleFeedbackSubmit = async () => {
     if (!feedbackStatus || !feedbackMessage.trim()) {
       toast.error("Select status and write feedback.");
       return;
@@ -210,15 +244,15 @@ const WorkRequestModal = ({ workRequest: initialWorkRequest, currentUser, onClos
   
     try {
       setIsSubmittingFeedback(true);
-      const res = await fetch("/api/submission/feedback", {
+  
+      const res = await fetch("/api/submission/feedback/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          workRequestId: workRequest.id,
           submissionId: workRequest.acceptedBid?.submission?.id,
-          feedback: feedbackMessage.trim(),
+          comment: feedbackMessage.trim(),
           status: feedbackStatus,
-          userId: currentUser.id,
+          councilId: currentUser.id,
         }),
       });
   
@@ -235,6 +269,7 @@ const WorkRequestModal = ({ workRequest: initialWorkRequest, currentUser, onClos
       setIsSubmittingFeedback(false);
     }
   };
+  
   
 
   const handleDelete = async (id) => {
@@ -600,6 +635,54 @@ const WorkRequestModal = ({ workRequest: initialWorkRequest, currentUser, onClos
               {/* Council Feedback to submission by Expert */}
               {isCouncil && isOwner && workRequest.status === "IN_PROGRESS" && workRequest.acceptedBid?.submission && (
                 <div className="mt-6 border-t pt-4">
+
+                  {/* 📝 Previous Feedback Rounds */}
+                  {Array.isArray(workRequest.acceptedBid?.submission?.feedbacks) &&
+                    workRequest.acceptedBid.submission.feedbacks.length > 0 && (
+                      <div className="mb-4 space-y-2">
+                        <h4 className="font-semibold">Previous Feedback</h4>
+                        {workRequest.acceptedBid.submission.feedbacks.map((fb) => (
+                          <div
+                            key={fb.id}
+                            className="text-sm bg-gray-100 dark:bg-gray-800 border rounded p-3"
+                          >
+                            <div className="flex justify-between items-center mb-1">
+                              <span className="font-medium">
+                                🗣️ {fb.council?.name || "Council"}
+                              </span>
+                              <span className={`text-xs px-2 py-0.5 rounded-full ${
+                                fb.status === "APPROVED"
+                                  ? "bg-green-100 text-green-700"
+                                  : "bg-yellow-100 text-yellow-700"
+                              }`}>
+                                {fb.status}
+                              </span>
+                            </div>
+
+                            <p className="text-xs text-gray-500 mb-1">
+                              {new Date(fb.createdAt).toLocaleString()}
+                            </p>
+
+                            <p className="text-sm">{fb.comment}</p>
+
+                            {/* Expert Reply Block */}
+                            {fb.replyMessage && (
+                              <div className="mt-2 border-l-4 pl-3 border-blue-400 text-sm">
+                                <p className="text-blue-600 font-medium">
+                                  🔁 {fb.submission?.bid?.user?.name || "Expert"} replied:
+                                </p>
+                                <p>{fb.replyMessage}</p>
+                                <p className="text-xs text-gray-400">
+                                  {fb.replyAt && `Replied on ${new Date(fb.replyAt).toLocaleString()}`}
+                                </p>
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                  )}
+
+
                   <h3 className="font-semibold mb-2">🗣️ Council Feedback</h3>
                   
                   <div className="flex flex-wrap gap-2 mb-2">

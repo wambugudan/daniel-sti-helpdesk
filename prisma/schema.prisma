@@ -121,10 +121,14 @@ model Invite {
 model SubmissionFeedback {
   id             String   @id @default(cuid())
   submissionId   String
-  status         FeedbackStatus @default(PENDING)
+  status         FeedbackStatus @default(CHANGES_REQUESTED)
   comment        String
   createdAt      DateTime @default(now())
   councilId      String
+
+  // Fields for expert reply
+  replyMessage String?
+  replyAt      DateTime?
 
   submission     Submission @relation(fields: [submissionId], references: [id], onDelete: Cascade)
   council        User       @relation("CouncilFeedback", fields: [councilId], references: [id], onDelete: Cascade)
@@ -152,7 +156,7 @@ enum WorkRequestStatus {
 
 // Enum for Submission feedback status
 enum FeedbackStatus {
-  PENDING     // Council requested corrections
+  CHANGES_REQUESTED     // Council requested corrections
   APPROVED    // Council accepted the submission
   REJECTED    // Council permanently rejected the submission
 }

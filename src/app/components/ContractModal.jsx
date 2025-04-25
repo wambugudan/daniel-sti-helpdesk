@@ -40,11 +40,8 @@ const ContractModal = ({ contract, currentUser, onClose, onCancelled }) => {
   const isOwner = currentUser?.id === contract?.acceptedBid?.userId;
   const hasSubmission = !!contract?.acceptedBid?.Submission?.Message || !!contract?.acceptedBid?.Submission?.FileURL;
 
-  // const [localSubmission, setLocalSubmission] = useState({
-  //   message: contract?.acceptedBid?.submissionMessage || "",
-  //   fileURL: contract?.acceptedBid?.submissionFileURL || "",
-  //   fileName: contract.acceptedBid?.submissionFileName || null,
-  // });
+  const [replyDrafts, setReplyDrafts] = useState({});
+
 
   const submission = contract.acceptedBid?.submission;
   const [localSubmission, setLocalSubmission] = useState({
@@ -106,8 +103,6 @@ const ContractModal = ({ contract, currentUser, onClose, onCancelled }) => {
           setFile(null);
           setUploadProgress(0);
         } else {
-          // console.error("Submission failed:", xhr.responseText);
-          // toast.error("Failed to submit work");
           console.error("Unexpected status code:", xhr.status, xhr.responseText);
           toast.error("Something went wrong submitting your work.");
         }
@@ -126,8 +121,57 @@ const ContractModal = ({ contract, currentUser, onClose, onCancelled }) => {
       setSubmitting(false);
     }
   };
+
+
+  // Fetch contract details
+  const fetchContractDetails = async () => {
+    try {
+      const res = await fetch(`/api/work-request/${contract.id}`, {
+        headers: { 'x-user-id': currentUser.id },
+      });
+      if (!res.ok) throw new Error("Failed to fetch contract details");
+      const updated = await res.json();
+      setLocalSubmission({
+        message: updated.acceptedBid?.submission?.message || "",
+        fileURL: updated.acceptedBid?.submission?.fileURL || "",
+        fileName: updated.acceptedBid?.submission?.fileName || null,
+      });
+      // You can also update any other relevant contract state if needed
+    } catch (error) {
+      console.error("Failed to refresh contract:", error);
+    }
+  };
+
+
+  // Handle reply submission
+  const handleReplySubmit = async (feedbackId) => {
+    const message = replyDrafts[feedbackId];
+    if (!message?.trim()) return toast.error("Reply cannot be empty.");
+  
+    try {
+      const res = await fetch("/api/submission/feedback/reply", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ feedbackId, replyMessage: message.trim() }),
+      });
+  
+      if (!res.ok) throw new Error("Reply failed");
+  
+      toast.success("Reply sent!");
+      setReplyDrafts((prev) => ({ ...prev, [feedbackId]: "" }));
+  
+      // 🔁 Refetch contract data here
+      await fetchContractDetails();
+  
+    } catch (err) {
+      console.error("Reply Error:", err);
+      toast.error("Failed to send reply");
+    }
+  };
   
 
+  // Handle contract cancellation
+  
   const handleCancelContract = async () => {
     if (!confirm("Cancel this contract?")) return;
     try {
@@ -317,6 +361,52 @@ const ContractModal = ({ contract, currentUser, onClose, onCancelled }) => {
               )}
             </div>
           )}
+
+          {/* Allow for reply*/}
+          {contract.acceptedBid?.submission?.feedbacks?.map(feedback => (
+            <div key={feedback.id} className="mb-4 border p-3 rounded bg-gray-50 dark:bg-gray-800">
+              <p className="text-sm font-semibold">
+                🗣️ {feedback.council?.name || "Council"} - {feedback.status}
+              </p>
+              <p className="text-xs text-gray-500">
+                Sent on {new Date(feedback.createdAt).toLocaleString()}
+              </p>
+              <p className="mt-1 text-sm">{feedback.comment}</p>
+
+              {/* Expert reply if exists */}
+              {feedback.replyMessage && (
+                <div className="mt-2 border-l-4 pl-3 border-blue-400 text-sm">
+                  <p className="text-blue-600 font-medium">🔁 Expert Reply:</p>
+                  <p>{feedback.replyMessage}</p>
+                  <p className="text-xs text-gray-400">
+                    {feedback.replyAt && `Replied on ${new Date(feedback.replyAt).toLocaleString()}`}
+                  </p>
+                </div>
+              )}
+
+              {/* Expert Reply Form */}
+              {isOwner && !feedback.replyMessage && (
+                <div className="mt-2">
+                  <textarea
+                    rows={2}
+                    placeholder="Write a reply..."
+                    className="w-full p-2 border rounded text-sm mb-1"
+                    value={replyDrafts[feedback.id] || ""}
+                    onChange={(e) => setReplyDrafts({ ...replyDrafts, [feedback.id]: e.target.value })}
+                  />
+                  <button
+                    onClick={() => handleReplySubmit(feedback.id)}
+                    className="text-xs px-3 py-1 rounded bg-blue-600 text-white hover:bg-blue-500"
+                  >
+                    Reply
+                  </button>
+                </div>
+              )}
+
+            </div>
+          ))}         
+
+
 
           {/* Cancel button */}
           <div className="mt-6 flex justify-end">

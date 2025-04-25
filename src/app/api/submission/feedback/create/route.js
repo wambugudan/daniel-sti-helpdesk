@@ -1,20 +1,27 @@
+
 // File: src/app/api/submission/feedback/create/route.js
 import prisma from "@/libs/prisma";
 
 export async function POST(req) {
   try {
-    const { submissionId, feedback, status, userId } = await req.json();
+    // ✅ Read body only once
+    const body = await req.json();
+    console.log("Incoming body:", body);
 
-    if (!submissionId || !feedback || !status || !userId) {
+    const { submissionId, comment, status, councilId } = body;
+
+    // ✅ Validate required fields
+    if (!submissionId || !comment || !status || !councilId) {
+      console.warn("❌ Missing fields", { submissionId, comment, status, councilId });
       return new Response(JSON.stringify({ error: "Missing fields" }), { status: 400 });
     }
 
     const newFeedback = await prisma.submissionFeedback.create({
       data: {
         submissionId,
-        comment: feedback,
+        comment,
         status,
-        councilId: userId,
+        councilId,
       },
     });
 
@@ -29,3 +36,4 @@ export async function POST(req) {
     });
   }
 }
+
