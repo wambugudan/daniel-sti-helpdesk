@@ -13,28 +13,54 @@ export async function GET(request, context) {
     console.log("Fetching work request with ID:", id, "for user:", userId);
 
 
+   
+    // const workRequest = await prisma.workRequest.findUnique({
+    //   where: { id },
+    //   include: {
+    //     user: true,
+    //     acceptedBid: {
+    //       include: {
+    //         user: true,
+    //         submission: {
+    //           include: {
+    //             messages: {
+    //               orderBy: { createdAt: "desc" },
+    //               include: { sender: true, },
+    //             },
+    //           },
+    //         },
+    //       },
+    //     },
+    //     bids: {
+    //       include: { user: true },
+    //       orderBy: { createdAt: "desc" },
+    //     },
+    //     _count: { select: { bids: true } },
+    //   },
+    // });
 
     // const workRequest = await prisma.workRequest.findUnique({
     //   where: { id },
     //   include: {
     //     user: true,
-    //     acceptedBid: {                // This fetches the winning bid details
-    //       include: {
-    //         user: true,               // Optional: to show who placed the bid
-    //         submission: true,
-    //       },
-    //     },
-    //     bids: {
+    //     acceptedBid: {
     //       include: {
     //         user: true,
-    //       },
-    //       orderBy: {
-    //         createdAt: 'desc',
-    //       },
+    //         submission: {
+    //           include: {
+    //             messages: {
+    //               orderBy: { createdAt: "desc" },
+    //               include: { sender: true }
+    //             }
+    //           }
+    //         }
+    //       }
     //     },
-    //     _count: {
-    //       select: { bids: true },
+    //     bids: {
+    //       include: { user: true },
+    //       orderBy: { createdAt: "desc" },
     //     },
+    //     _count: { select: { bids: true } },
     //   },
     // });
 
@@ -47,22 +73,23 @@ export async function GET(request, context) {
             user: true,
             submission: {
               include: {
-                feedbacks: {
+                messages: {
                   orderBy: { createdAt: "desc" },
-                  // include: { council: true },
-                  include: { council: true, submission: { include: { bid: { include: { user: true } } } } },
-                },
-              },
-            },
-          },
+                  include: { sender: true }  // <-- ❗ no comma here
+                }
+              }
+            }
+          }
         },
         bids: {
           include: { user: true },
-          orderBy: { createdAt: "desc" },
+          orderBy: { createdAt: "desc" }
         },
-        _count: { select: { bids: true } },
-      },
+        _count: { select: { bids: true } }
+      }
     });
+    
+    
     
     
     

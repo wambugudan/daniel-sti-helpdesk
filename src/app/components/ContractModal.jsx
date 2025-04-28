@@ -4,7 +4,7 @@
 'use client';
 
 import { useTheme } from "@/context/ThemeProvider";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";
 import { FaFilePdf, FaFileWord, FaFileImage, FaFileAlt } from "react-icons/fa";
@@ -34,6 +34,13 @@ const ContractModal = ({ contract, currentUser, onClose, onCancelled }) => {
   const [editingSubmission, setEditingSubmission] = useState(false);
   const [submitted, setSubmitted] = useState(!!contract?.acceptedBid?.Submission?.Message || !!contract?.acceptedBid?.Submission?.FileURL);
   const [isDetailsExpanded, setIsDetailsExpanded] = useState(false);
+
+  // State for message and file upload
+  const [messages, setMessages] = useState([]);
+  const [newMessage, setNewMessage] = useState("");
+  const [newFile, setNewFile] = useState(null);
+  const [sending, setSending] = useState(false);
+
 
   
 
@@ -168,7 +175,57 @@ const ContractModal = ({ contract, currentUser, onClose, onCancelled }) => {
       toast.error("Failed to send reply");
     }
   };
+
+  // Fetch messages for the contract
+  const fetchMessages = async () => {
+    try {
+      const res = await fetch(`/api/submission/message/${contract.acceptedBid?.submission?.id}`);
+      if (!res.ok) throw new Error("Failed to fetch messages");
+      const data = await res.json();
+      setMessages(data.messages);
+    } catch (error) {
+      console.error("Fetch messages error:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (contract.acceptedBid?.submission?.id) {
+      fetchMessages();
+    }
+  }, [contract.acceptedBid?.submission?.id]);
   
+  const sendMessage = async () => {
+    if (!newMessage.trim() && !newFile) return toast.error("Cannot send empty message");
+
+      setSending(true);
+      try {
+        const formData = new FormData();
+        formData.append("submissionId", contract.acceptedBid?.submission?.id);
+        formData.append("senderId", currentUser.id);
+        formData.append("senderRole", currentUser.role);
+        formData.append("content", newMessage.trim());
+        if (newFile) formData.append("file", newFile);
+
+        const res = await fetch("/api/submission/message/send", {
+          method: "POST",
+          body: formData,
+        });
+
+        if (!res.ok) throw new Error("Failed to send message");
+
+        toast.success("Message sent!");
+        setNewMessage("");
+        setNewFile(null);
+
+        await fetchMessages(); // Refresh chat
+
+      } catch (error) {
+        console.error(error);
+        toast.error("Failed to send");
+      } finally {
+        setSending(false);
+      }
+    }
 
   // Handle contract cancellation
   
@@ -360,51 +417,62 @@ const ContractModal = ({ contract, currentUser, onClose, onCancelled }) => {
                 </>
               )}
             </div>
-          )}
+          )}               
 
-          {/* Allow for reply*/}
-          {contract.acceptedBid?.submission?.feedbacks?.map(feedback => (
-            <div key={feedback.id} className="mb-4 border p-3 rounded bg-gray-50 dark:bg-gray-800">
-              <p className="text-sm font-semibold">
-                🗣️ {feedback.council?.name || "Council"} - {feedback.status}
-              </p>
-              <p className="text-xs text-gray-500">
-                Sent on {new Date(feedback.createdAt).toLocaleString()}
-              </p>
-              <p className="mt-1 text-sm">{feedback.comment}</p>
+          <div className="mt-6 border-t pt-4">
+            <h3 className="font-semibold mb-2">💬 Conversation</h3>
 
-              {/* Expert reply if exists */}
-              {feedback.replyMessage && (
-                <div className="mt-2 border-l-4 pl-3 border-blue-400 text-sm">
-                  <p className="text-blue-600 font-medium">🔁 Expert Reply:</p>
-                  <p>{feedback.replyMessage}</p>
-                  <p className="text-xs text-gray-400">
-                    {feedback.replyAt && `Replied on ${new Date(feedback.replyAt).toLocaleString()}`}
+            <div className="space-y-3 max-h-60 overflow-y-auto">
+              {messages.map((msg) => (
+                <div
+                  key={msg.id}
+                  className={`p-3 rounded-lg ${
+                    msg.senderId === currentUser.id
+                      ? "bg-blue-100 dark:bg-blue-900 text-right ml-auto max-w-[80%]"
+                      : "bg-gray-100 dark:bg-gray-800 text-left mr-auto max-w-[80%]"
+                  }`}
+                >
+                  <p className="text-xs font-bold mb-1">{msg.sender.name} ({msg.senderRole})</p>
+                  <p className="text-sm">{msg.content}</p>
+                  {msg.fileURL && (
+                    <a href={msg.fileURL} target="_blank" rel="noopener noreferrer" className="text-xs text-blue-600 underline">
+                      📎 Attachment
+                    </a>
+                  )}
+                  <p className="text-[10px] text-gray-400 mt-1">
+                    {new Date(msg.createdAt).toLocaleString()}
                   </p>
                 </div>
-              )}
-
-              {/* Expert Reply Form */}
-              {isOwner && !feedback.replyMessage && (
-                <div className="mt-2">
-                  <textarea
-                    rows={2}
-                    placeholder="Write a reply..."
-                    className="w-full p-2 border rounded text-sm mb-1"
-                    value={replyDrafts[feedback.id] || ""}
-                    onChange={(e) => setReplyDrafts({ ...replyDrafts, [feedback.id]: e.target.value })}
-                  />
-                  <button
-                    onClick={() => handleReplySubmit(feedback.id)}
-                    className="text-xs px-3 py-1 rounded bg-blue-600 text-white hover:bg-blue-500"
-                  >
-                    Reply
-                  </button>
-                </div>
-              )}
-
+              ))}
             </div>
-          ))}         
+
+            <div className="mt-4 flex flex-col gap-2">
+              <textarea
+                placeholder="Type your message..."
+                rows={2}
+                value={newMessage}
+                onChange={(e) => setNewMessage(e.target.value)}
+                className="w-full p-2 border rounded text-sm"
+              />
+
+              <input
+                type="file"
+                onChange={(e) => setNewFile(e.target.files[0])}
+                accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                className="w-full text-xs"
+              />
+
+              <button
+                disabled={sending}
+                onClick={sendMessage}
+                className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-500 text-sm"
+              >
+                {sending ? "Sending..." : "Send"}
+              </button>
+            </div>  
+
+          </div>
+    
 
 
 

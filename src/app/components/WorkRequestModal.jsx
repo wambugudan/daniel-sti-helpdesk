@@ -189,52 +189,6 @@ const WorkRequestModal = ({ workRequest: initialWorkRequest, currentUser, onClos
   };
 
 
-  // This function is called when the council user wants to submit feedback on the expert's submission.
-  // const handleFeedbackSubmit = async () => {
-
-  //   const res = await fetch("/api/submission/feedback/create", {
-  //     method: "POST",
-  //     headers: { "Content-Type": "application/json" },
-  //     body: JSON.stringify({
-  //       submissionId: workRequest.acceptedBid?.submission?.id,
-  //       feedback: feedbackMessage.trim(),
-  //       status: feedbackStatus,
-  //       userId: currentUser.id,
-  //     }),
-  //   });
-    
-  //   if (!feedbackStatus || !feedbackMessage.trim()) {
-  //     toast.error("Select status and write feedback.");
-  //     return;
-  //   }
-  
-  //   try {
-  //     setIsSubmittingFeedback(true);
-  //     const res = await fetch("/api/submission/feedback", {
-  //       method: "POST",
-  //       headers: { "Content-Type": "application/json" },
-  //       body: JSON.stringify({
-  //         workRequestId: workRequest.id,
-  //         submissionId: workRequest.acceptedBid?.submission?.id,
-  //         feedback: feedbackMessage.trim(),
-  //         status: feedbackStatus,
-  //         userId: currentUser.id,
-  //       }),
-  //     });
-  
-  //     if (!res.ok) throw new Error("Feedback failed");
-  
-  //     toast.success("Feedback submitted successfully!");
-  //     setFeedbackMessage("");
-  //     setFeedbackStatus(null);
-  //     await fetchWorkRequestDetails(); // refresh updated feedback
-  //   } catch (error) {
-  //     console.error("Feedback error:", error);
-  //     toast.error("Failed to send feedback.");
-  //   } finally {
-  //     setIsSubmittingFeedback(false);
-  //   }
-  // };
 
   const handleFeedbackSubmit = async () => {
     if (!feedbackStatus || !feedbackMessage.trim()) {
