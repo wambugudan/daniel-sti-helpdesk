@@ -48,11 +48,23 @@ const WorkRequestModal = ({ workRequest: initialWorkRequest, currentUser, onClos
   const [feedbackStatus, setFeedbackStatus] = useState(null); // "APPROVED" or "REJECTED"
   const [isSubmittingFeedback, setIsSubmittingFeedback] = useState(false);
 
+  const [messages, setMessages] = useState([]);
+  const [newMessage, setNewMessage] = useState("");
+  const [newFile, setNewFile] = useState(null);
+  const [sending, setSending] = useState(false);
+  const messagesEndRef = useRef(null);
 
 
   const isOwner = currentUser?.id === workRequest.userId;
   const isCouncil = currentUser?.role === "COUNCIL";
   const isExpert = currentUser?.role === "EXPERT";
+
+
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
 
   // This effect runs when the work request changes, updating the bid amount and message if an existing bid is found.
@@ -125,8 +137,23 @@ const WorkRequestModal = ({ workRequest: initialWorkRequest, currentUser, onClos
   
     return () => observer.disconnect();
   }, []);
-  
 
+
+  const fetchMessages = async () => {
+    if (!workRequest?.acceptedBid?.submission?.id) return;
+    try {
+      const res = await fetch(`/api/submission/message/${workRequest.acceptedBid.submission.id}`);
+      if (!res.ok) throw new Error("Failed to load messages");
+      const data = await res.json();
+      setMessages(data.messages || []);
+      setTimeout(() => {
+        messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+      }, 100);
+    } catch (err) {
+      console.error("Failed to load messages:", err);
+    }
+  };
+  
 
 
   // This effect runs when the component mounts and when the work request or user changes.
@@ -136,6 +163,7 @@ const WorkRequestModal = ({ workRequest: initialWorkRequest, currentUser, onClos
   
     if (isCouncil && currentUser?.id && initialWorkRequest?.id) {
       fetchWorkRequestDetails();
+      fetchMessages();
     }
   
     if (isExpert && currentUser?.id && workRequest?.id) {
@@ -190,39 +218,39 @@ const WorkRequestModal = ({ workRequest: initialWorkRequest, currentUser, onClos
 
 
 
-  const handleFeedbackSubmit = async () => {
-    if (!feedbackStatus || !feedbackMessage.trim()) {
-      toast.error("Select status and write feedback.");
-      return;
-    }
+  // const handleFeedbackSubmit = async () => {
+  //   if (!feedbackStatus || !feedbackMessage.trim()) {
+  //     toast.error("Select status and write feedback.");
+  //     return;
+  //   }
   
-    try {
-      setIsSubmittingFeedback(true);
+  //   try {
+  //     setIsSubmittingFeedback(true);
   
-      const res = await fetch("/api/submission/feedback/create", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          submissionId: workRequest.acceptedBid?.submission?.id,
-          comment: feedbackMessage.trim(),
-          status: feedbackStatus,
-          councilId: currentUser.id,
-        }),
-      });
+  //     const res = await fetch("/api/submission/feedback/create", {
+  //       method: "POST",
+  //       headers: { "Content-Type": "application/json" },
+  //       body: JSON.stringify({
+  //         submissionId: workRequest.acceptedBid?.submission?.id,
+  //         comment: feedbackMessage.trim(),
+  //         status: feedbackStatus,
+  //         councilId: currentUser.id,
+  //       }),
+  //     });
   
-      if (!res.ok) throw new Error("Feedback failed");
+  //     if (!res.ok) throw new Error("Feedback failed");
   
-      toast.success("Feedback submitted successfully!");
-      setFeedbackMessage("");
-      setFeedbackStatus(null);
-      await fetchWorkRequestDetails(); // refresh updated feedback
-    } catch (error) {
-      console.error("Feedback error:", error);
-      toast.error("Failed to send feedback.");
-    } finally {
-      setIsSubmittingFeedback(false);
-    }
-  };
+  //     toast.success("Feedback submitted successfully!");
+  //     setFeedbackMessage("");
+  //     setFeedbackStatus(null);
+  //     await fetchWorkRequestDetails(); // refresh updated feedback
+  //   } catch (error) {
+  //     console.error("Feedback error:", error);
+  //     toast.error("Failed to send feedback.");
+  //   } finally {
+  //     setIsSubmittingFeedback(false);
+  //   }
+  // };
   
   
 
@@ -586,91 +614,101 @@ const WorkRequestModal = ({ workRequest: initialWorkRequest, currentUser, onClos
                 </div>
               )}
               
-              {/* Council Feedback to submission by Expert */}
-              {isCouncil && isOwner && workRequest.status === "IN_PROGRESS" && workRequest.acceptedBid?.submission && (
+            
+
+              {workRequest.acceptedBid?.submission && (
                 <div className="mt-6 border-t pt-4">
+                  <h3 className="font-semibold mb-2">💬 Conversation</h3>
 
-                  {/* 📝 Previous Feedback Rounds */}
-                  {Array.isArray(workRequest.acceptedBid?.submission?.feedbacks) &&
-                    workRequest.acceptedBid.submission.feedbacks.length > 0 && (
-                      <div className="mb-4 space-y-2">
-                        <h4 className="font-semibold">Previous Feedback</h4>
-                        {workRequest.acceptedBid.submission.feedbacks.map((fb) => (
-                          <div
-                            key={fb.id}
-                            className="text-sm bg-gray-100 dark:bg-gray-800 border rounded p-3"
+                  <div className="space-y-3 max-h-60 overflow-y-auto pr-2">
+                    {isClient && messages.map((msg) => (
+                      <div
+                        key={msg.id}
+                        className={`p-3 rounded-lg ${
+                          msg.senderId === currentUser.id
+                            ? "bg-blue-100 dark:bg-blue-900 text-right ml-auto max-w-[80%]"
+                            : "bg-gray-100 dark:bg-gray-800 text-left mr-auto max-w-[80%]"
+                        }`}
+                      >
+                        <p className="text-xs font-bold mb-1">
+                          {msg.sender?.name || "Unknown"} ({msg.senderRole})
+                        </p>
+                        <p className="text-sm">{msg.content}</p>
+                        {msg.fileURL && (
+                          <a
+                            href={msg.fileURL}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-xs text-blue-600 underline"
                           >
-                            <div className="flex justify-between items-center mb-1">
-                              <span className="font-medium">
-                                🗣️ {fb.council?.name || "Council"}
-                              </span>
-                              <span className={`text-xs px-2 py-0.5 rounded-full ${
-                                fb.status === "APPROVED"
-                                  ? "bg-green-100 text-green-700"
-                                  : "bg-yellow-100 text-yellow-700"
-                              }`}>
-                                {fb.status}
-                              </span>
-                            </div>
-
-                            <p className="text-xs text-gray-500 mb-1">
-                              {new Date(fb.createdAt).toLocaleString()}
-                            </p>
-
-                            <p className="text-sm">{fb.comment}</p>
-
-                            {/* Expert Reply Block */}
-                            {fb.replyMessage && (
-                              <div className="mt-2 border-l-4 pl-3 border-blue-400 text-sm">
-                                <p className="text-blue-600 font-medium">
-                                  🔁 {fb.submission?.bid?.user?.name || "Expert"} replied:
-                                </p>
-                                <p>{fb.replyMessage}</p>
-                                <p className="text-xs text-gray-400">
-                                  {fb.replyAt && `Replied on ${new Date(fb.replyAt).toLocaleString()}`}
-                                </p>
-                              </div>
-                            )}
-                          </div>
-                        ))}
+                            📎 Attachment
+                          </a>
+                        )}
+                        <p className="text-[10px] text-gray-400 mt-1">
+                          {new Date(msg.createdAt).toLocaleString()}
+                        </p>
                       </div>
-                  )}
-
-
-                  <h3 className="font-semibold mb-2">🗣️ Council Feedback</h3>
-                  
-                  <div className="flex flex-wrap gap-2 mb-2">
-                    <button
-                      className={`px-3 py-1 text-xs rounded ${feedbackStatus === "APPROVED" ? "bg-green-600 text-white" : "bg-gray-200"}`}
-                      onClick={() => setFeedbackStatus("APPROVED")}
-                    >
-                      ✅ Approve
-                    </button>
-                    <button
-                      className={`px-3 py-1 text-xs rounded ${feedbackStatus === "CHANGES_REQUESTED" ? "bg-yellow-500 text-white" : "bg-gray-200"}`}
-                      onClick={() => setFeedbackStatus("CHANGES_REQUESTED")}
-                    >
-                      🛠️ Request Changes
-                    </button>
+                    ))}
+                    <div ref={messagesEndRef} />
                   </div>
 
-                  <textarea
-                    rows={3}
-                    placeholder="Write feedback..."
-                    value={feedbackMessage}
-                    onChange={(e) => setFeedbackMessage(e.target.value)}
-                    className="w-full border rounded p-2 text-sm mb-2"
-                  />
+                  <div className="mt-4 flex flex-col gap-2">
+                    <textarea
+                      placeholder="Type your message..."
+                      rows={2}
+                      value={newMessage}
+                      onChange={(e) => setNewMessage(e.target.value)}
+                      className="w-full p-2 border rounded text-sm"
+                    />
 
-                  <button
-                    onClick={handleFeedbackSubmit}
-                    disabled={isSubmittingFeedback}
-                    className="px-4 py-2 text-sm font-semibold rounded bg-blue-600 text-white hover:bg-blue-500"
-                  >
-                    {isSubmittingFeedback ? "Submitting..." : "Send Feedback"}
-                  </button>
+                    <input
+                      type="file"
+                      onChange={(e) => setNewFile(e.target.files[0])}
+                      accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                      className="w-full text-xs"
+                    />
+
+                    <button
+                      disabled={sending}
+                      onClick={async () => {
+                        if (!newMessage.trim() && !newFile) return toast.error("Cannot send empty message");
+
+                        setSending(true);
+                        try {
+                          const formData = new FormData();
+                          formData.append("submissionId", workRequest.acceptedBid?.submission?.id);
+                          formData.append("senderId", currentUser.id);
+                          formData.append("senderRole", currentUser.role);
+                          formData.append("content", newMessage.trim());
+                          if (newFile) formData.append("file", newFile);
+
+                          const res = await fetch("/api/submission/message/send", {
+                            method: "POST",
+                            body: formData,
+                          });
+
+                          if (!res.ok) throw new Error("Failed to send message");
+
+                          toast.success("Message sent!");
+                          setNewMessage("");
+                          setNewFile(null);
+
+                          await fetchMessages(); // Refresh conversation
+                        } catch (error) {
+                          console.error(error);
+                          toast.error("Failed to send");
+                        } finally {
+                          setSending(false);
+                        }
+                      }}
+                      className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-500 text-sm"
+                    >
+                      {sending ? "Sending..." : "Send"}
+                    </button>
+                  </div>
                 </div>
               )}
+
 
 
 
