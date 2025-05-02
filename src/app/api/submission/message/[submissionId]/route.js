@@ -1,9 +1,9 @@
 // File: src/app/api/submission/message/[submissionId]/route.js
 import prisma from "@/libs/prisma";
 
-export async function GET(req, { params }) {
+export async function GET(req, context) {
   try {
-    const { submissionId } = params;
+    const { submissionId } = await context.params;
     if (!submissionId) {
       return new Response(JSON.stringify({ error: "Missing submissionId" }), { status: 400 });
     }
