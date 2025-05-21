@@ -3,66 +3,14 @@ import prisma from "@/libs/prisma";
 
 export const dynamic = 'force-dynamic';
 
-export async function GET(request, context) {
+export async function GET(request, {params}) {
   try {
-    const params = await context.params;
-    const { id } = params;
+    // const params = await context.params;
+    const { id } = await params;
 
     const userId = request.headers.get('x-user-id'); // 👈 Extract userId from header
 
     console.log("Fetching work request with ID:", id, "for user:", userId);
-
-
-   
-    // const workRequest = await prisma.workRequest.findUnique({
-    //   where: { id },
-    //   include: {
-    //     user: true,
-    //     acceptedBid: {
-    //       include: {
-    //         user: true,
-    //         submission: {
-    //           include: {
-    //             messages: {
-    //               orderBy: { createdAt: "desc" },
-    //               include: { sender: true, },
-    //             },
-    //           },
-    //         },
-    //       },
-    //     },
-    //     bids: {
-    //       include: { user: true },
-    //       orderBy: { createdAt: "desc" },
-    //     },
-    //     _count: { select: { bids: true } },
-    //   },
-    // });
-
-    // const workRequest = await prisma.workRequest.findUnique({
-    //   where: { id },
-    //   include: {
-    //     user: true,
-    //     acceptedBid: {
-    //       include: {
-    //         user: true,
-    //         submission: {
-    //           include: {
-    //             messages: {
-    //               orderBy: { createdAt: "desc" },
-    //               include: { sender: true }
-    //             }
-    //           }
-    //         }
-    //       }
-    //     },
-    //     bids: {
-    //       include: { user: true },
-    //       orderBy: { createdAt: "desc" },
-    //     },
-    //     _count: { select: { bids: true } },
-    //   },
-    // });
 
     const workRequest = await prisma.workRequest.findUnique({
       where: { id },

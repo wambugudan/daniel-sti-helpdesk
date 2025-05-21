@@ -1,0 +1,223 @@
+I feel like we are ready to go on to the notifications feature. I want the users to get notifications whenever there is activity in their work request for Council, Contract, or Expert. How is it best to implement this? I have attached my front-end screenshots
+ChatGPT said:
+
+Great — your system is now rich with contextual activity (bids, submissions, messages, feedback), making it an ideal time to introduce a notification system.
+🔔 Goals for Notifications
+
+You want to notify:
+
+    Council users when:
+
+        An expert places a new bid on their work request.
+
+        A submission is made to an accepted bid.
+
+        A reply is made to their feedback.
+
+    Expert users when:
+
+        Their bid is accepted.
+
+        A council gives feedback on their submission.
+
+        A council replies to their message in the contract thread.
+
+✅ Step-by-Step Notification System Design
+1. Database Schema
+
+Add a Notification model in Prisma:
+
+model Notification {
+  id        String   @id @default(cuid())
+  userId    String
+  type      String   // e.g., "NEW_BID", "SUBMISSION", "FEEDBACK_REPLY"
+  message   String
+  link      String   // optional: for redirecting to work request or contract
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+2. API Route for Creating Notifications
+
+File: src/app/api/notifications/create/route.js
+
+import prisma from "@/libs/prisma";
+
+export async function POST(req) {
+  try {
+    const { userId, type, message, link } = await req.json();
+
+    if (!userId || !type || !message) {
+      return new Response("Missing required fields", { status: 400 });
+    }
+
+    const notification = await prisma.notification.create({
+      data: { userId, type, message, link },
+    });
+
+    return new Response(JSON.stringify(notification), {
+      status: 201,
+      headers: { "Content-Type": "application/json" },
+    });
+  } catch (err) {
+    console.error("Notification creation failed:", err);
+    return new Response("Server Error", { status: 500 });
+  }
+}
+
+3. Trigger Notifications in Relevant Events
+
+Update your logic to send a POST to /api/notifications/create:
+
+    After bid submission
+
+    After submission upload
+
+    After feedback is submitted or replied to
+
+    After a message is sent in a contract
+
+Example (in /api/bid):
+
+await fetch("/api/notifications/create", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    userId: councilUserId, // from related WorkRequest
+    type: "NEW_BID",
+    message: `${expertName} placed a bid on your work request: ${workRequestTitle}`,
+    link: `/my-work-request?id=${workRequestId}`,
+  }),
+});
+
+4. Fetch Notifications in the Frontend
+
+API route: /api/notifications/[userId]/route.js
+
+import prisma from "@/libs/prisma";
+
+export async function GET(req, { params }) {
+  const userId = params.userId;
+  const notifications = await prisma.notification.findMany({
+    where: { userId },
+    orderBy: { createdAt: "desc" },
+    take: 20,
+  });
+
+  return new Response(JSON.stringify(notifications), {
+    headers: { "Content-Type": "application/json" },
+  });
+}
+
+5. Notification Dropdown Component
+
+Update your dropdown badge to show latest notifications:
+
+// Call API on dropdown open
+useEffect(() => {
+  if (isOpen) {
+    fetch(`/api/notifications/${currentUser.id}`)
+      .then(res => res.json())
+      .then(data => setNotifications(data));
+  }
+}, [isOpen]);
+
+Render inside dropdown:
+
+{notifications.map(n => (
+  <div key={n.id} className="text-sm border-b py-2">
+    <a href={n.link || "#"} className="hover:underline">
+      {n.message}
+    </a>
+    <p className="text-xs text-gray-400">{new Date(n.createdAt).toLocaleString()}</p>
+  </div>
+))}
+
+6. Bonus (Optional)
+
+    Add a route to mark notifications as read.
+
+    Real-time updates with WebSockets or polling.
+
+    Count unread and show in badge (.filter(n => !n.read).length).
+
+Would you like help scaffolding any of the routes or components above?
+You said:
+Just to build on this, once the notification is show, how will the user know which of the workrequest or contract the notification is on?
+ChatGPT said:
+
+Excellent follow-up — knowing which Work Request or Contract a notification refers to is essential for a smooth UX. Here’s how to clarify and contextualize each notification for the user:
+✅ Best Practice: Use a link and a label in the notification
+
+In your Notification model or payload, you already have:
+
+    message: readable text like “John placed a bid on your work request.”
+
+    link: e.g., /my-work-request?id=abc123
+
+But to help the user quickly identify the related item, add:
+
+    relatedTitle: e.g., "Website Redesign for Product Launch"
+
+    Optional: relatedType: either "WORK_REQUEST" or "CONTRACT"
+
+Update your model (optional but clean):
+
+model Notification {
+  id           String   @id @default(cuid())
+  userId       String
+  type         String
+  message      String
+  relatedId    String
+  relatedTitle String
+  relatedType  String   // e.g., "WORK_REQUEST", "CONTRACT"
+  link         String
+  read         Boolean  @default(false)
+  createdAt    DateTime @default(now())
+
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+🔗 Example Notification Payload
+
+When sending:
+
+await fetch("/api/notifications/create", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({
+    userId: councilUserId,
+    type: "NEW_BID",
+    message: `${expertName} placed a bid.`,
+    relatedTitle: workRequestTitle,
+    relatedType: "WORK_REQUEST",
+    relatedId: workRequestId,
+    link: `/my-work-request?id=${workRequestId}`,
+  }),
+});
+
+📘 Notification Display UI
+
+In the frontend dropdown or panel, show both message and relatedTitle:
+
+{notifications.map((n) => (
+  <div key={n.id} className="p-2 border-b hover:bg-gray-100 dark:hover:bg-gray-800">
+    <a href={n.link} className="text-sm font-medium text-blue-600 hover:underline">
+      {n.relatedTitle}
+    </a>
+    <p className="text-xs text-gray-600">{n.message}</p>
+    <p className="text-[10px] text-gray-400">
+      {new Date(n.createdAt).toLocaleString()}
+    </p>
+  </div>
+))}
+
+Optional Improvements
+
+    Use icons for relatedType (🧾 for Work Request, 🤝 for Contract).
+
+    Group notifications under headings: "Work Requests" and "Contracts".
+
+    Auto-scroll to the relevant section when the user clicks.

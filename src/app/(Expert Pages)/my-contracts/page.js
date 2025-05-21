@@ -6,6 +6,7 @@ import { useCurrentUser } from '@/hooks/useCurrentUser';
 // import DataCard from '@/app/components/DataCard';
 import ContractCard from '@/app/components/ContractCard';
 import ContractModal from '@/app/components/ContractModal';
+import ModalListener from '@/app/components/ModalListener';
 
 
 const MyContracts = () => {
@@ -56,6 +57,8 @@ const MyContracts = () => {
   
   return (
     <div className="container mx-auto my-6 px-4 md:px-6 lg:px-8">
+      {/* Modal listener for handling the modal open */}
+      <ModalListener currentUser={currentUser} />
       <h2 className="text-xl font-semibold mb-6">My Contracts</h2>
       {error && <p className="text-red-500">Error: {error}</p>}
 

@@ -26,6 +26,17 @@ const getFileIcon = (fileURL) => {
   }
 };
 
+// Refresh notifications function
+// This function is called to refresh the notifications when a bid is accepted or a work request is completed.
+const refreshNotifications = async () => {
+  try {
+    await fetch('/api/notifications/refresh', { method: 'POST' });
+  } catch (error) {
+    console.error("Failed to refresh notifications", error);
+  }
+};
+
+
 const WorkRequestModal = ({ workRequest: initialWorkRequest, currentUser, onClose, onDeleted }) => {
   const router = useRouter();
   const { theme } = useTheme();
@@ -208,6 +219,7 @@ const WorkRequestModal = ({ workRequest: initialWorkRequest, currentUser, onClos
 
       await fetchExistingBid();       // update bid
       await fetchWorkRequestDetails(); // refresh council view
+      await refreshNotifications();    // refresh notifications
     } catch (error) {
       toast.error("Error placing bid");
       console.error(error);
@@ -216,42 +228,6 @@ const WorkRequestModal = ({ workRequest: initialWorkRequest, currentUser, onClos
     }
   };
 
-
-
-  // const handleFeedbackSubmit = async () => {
-  //   if (!feedbackStatus || !feedbackMessage.trim()) {
-  //     toast.error("Select status and write feedback.");
-  //     return;
-  //   }
-  
-  //   try {
-  //     setIsSubmittingFeedback(true);
-  
-  //     const res = await fetch("/api/submission/feedback/create", {
-  //       method: "POST",
-  //       headers: { "Content-Type": "application/json" },
-  //       body: JSON.stringify({
-  //         submissionId: workRequest.acceptedBid?.submission?.id,
-  //         comment: feedbackMessage.trim(),
-  //         status: feedbackStatus,
-  //         councilId: currentUser.id,
-  //       }),
-  //     });
-  
-  //     if (!res.ok) throw new Error("Feedback failed");
-  
-  //     toast.success("Feedback submitted successfully!");
-  //     setFeedbackMessage("");
-  //     setFeedbackStatus(null);
-  //     await fetchWorkRequestDetails(); // refresh updated feedback
-  //   } catch (error) {
-  //     console.error("Feedback error:", error);
-  //     toast.error("Failed to send feedback.");
-  //   } finally {
-  //     setIsSubmittingFeedback(false);
-  //   }
-  // };
-  
   
 
   const handleDelete = async (id) => {
@@ -287,6 +263,7 @@ const WorkRequestModal = ({ workRequest: initialWorkRequest, currentUser, onClos
   
       toast.success("Bid accepted!");
       await fetchWorkRequestDetails(); // refresh modal data
+      await refreshNotifications();    // refresh notifications
     } catch (error) {
       toast.error("Error accepting bid");
       console.error("❌ Accept bid error:", error);
@@ -406,7 +383,10 @@ const WorkRequestModal = ({ workRequest: initialWorkRequest, currentUser, onClos
           )}
 
           {/* Sticky Header */}
-          <div className="sticky top-0 z-20 bg-inherit pb-2 border-b border-gray-200 dark:border-gray-700">
+          
+
+          {/* Header - No longer sticky */}
+          <div className="bg-inherit pb-2 border-b border-gray-200 dark:border-gray-700">
             <div className="flex justify-end">
               <button onClick={onClose} className={`text-lg px-2 py-1 rounded hover:text-red-500 ${
                 theme === "dark" ? "text-gray-300" : "text-gray-700"
@@ -425,7 +405,6 @@ const WorkRequestModal = ({ workRequest: initialWorkRequest, currentUser, onClos
             </div>
             <p className={`${theme === "dark" ? "text-gray-300" : "text-gray-700"}`}><strong>Budget:</strong> ${workRequest.budget}</p>
             <p className={`${theme === "dark" ? "text-gray-300" : "text-gray-700"}`}><strong>Duration:</strong> {duration ?? "N/A"} days</p>
-            
           </div>
 
           <p className={`mt-4 text-sm ${theme === "dark" ? "text-gray-300" : "text-gray-700"} whitespace-pre-line`}>

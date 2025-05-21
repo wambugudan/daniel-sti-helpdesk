@@ -17,11 +17,7 @@ const ContractCard = ({ contract, onView }) => {
     CLOSED: "bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-200",
   }[contract.status];
 
-  return (
-    // <div
-    //   className={`relative rounded-xl shadow-sm p-6 w-full transition duration-300 hover:shadow-lg border 
-    //   ${theme === "dark" ? "bg-gray-800 text-white border-gray-700" : "bg-white text-gray-900 border-gray-200"}`}
-    // >
+  return (  
     <CardWrapper>
       {/* Status Badge */}
       <div className={`absolute top-4 right-4 text-xs font-semibold px-3 py-1 rounded-full ${statusColor}`}>
@@ -66,8 +62,7 @@ const ContractCard = ({ contract, onView }) => {
           View Contract
         </button>
       </div>
-    </CardWrapper>
-    // </div>
+    </CardWrapper>    
   );
 };
 

@@ -23,6 +23,17 @@ const getFileIcon = (fileURL) => {
   }
 };
 
+// Function to refresh notifications
+// This function is called when the user submits a new message or file
+const refreshNotifications = async () => {
+  try {
+    await fetch('/api/notifications/refresh', { method: 'POST' });
+  } catch (error) {
+    console.error("Failed to refresh notifications", error);
+  }
+};
+
+
 const ContractModal = ({ contract, currentUser, onClose, onCancelled }) => {
   const { theme } = useTheme();
 
@@ -48,6 +59,20 @@ const ContractModal = ({ contract, currentUser, onClose, onCancelled }) => {
   const hasSubmission = !!contract?.acceptedBid?.Submission?.Message || !!contract?.acceptedBid?.Submission?.FileURL;
 
   const [replyDrafts, setReplyDrafts] = useState({});
+
+
+  useEffect(() => {
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        onClose();
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [onClose]);
 
 
   const submission = contract.acceptedBid?.submission;
@@ -94,6 +119,7 @@ const ContractModal = ({ contract, currentUser, onClose, onCancelled }) => {
           const response = JSON.parse(xhr.responseText);
   
           toast.success("Work submitted successfully!");
+          refreshNotifications(); // Refresh notifications after submission
   
           // ⬇️ Set submission preview info
           setLocalSubmission({

@@ -27,6 +27,13 @@ model User {
 
   // Messages sent by the user (Council or Expert)
   submissionMessages SubmissionMessage[] @relation("UserMessages")
+
+  // notification Notification[]
+  notifications Notification[] @relation("UserNotifications")
+
+  councilContracts Contract[] @relation("CouncilContracts")
+
+  expertContracts  Contract[] @relation("ExpertContracts") 
 }
 
 model WorkRequest {
@@ -58,6 +65,8 @@ model WorkRequest {
 
   // Invites related to this work request
   invites     Invite[] @relation("WorkRequestInvites")
+
+  contract    Contract? @relation("WorkRequestContract") 
 }
 
 // This model represents the bids placed by experts on work requests
@@ -77,6 +86,9 @@ model Bid {
   acceptedIn  WorkRequest? @relation("AcceptedBid")
 
   submission  Submission?   // ✅ One-to-one submission
+
+  contract Contract? @relation("ContractAcceptedBid")
+
 }
 
 
@@ -125,6 +137,59 @@ model Invite {
   workRequest WorkRequest @relation("WorkRequestInvites", fields: [workRequestId], references: [id], onDelete: Cascade)
 }
 
+enum RelatedType {
+  WORK_REQUEST
+  CONTRACT
+}
+
+
+model Notification {
+  id           String   @id @default(cuid())
+  userId       String
+  // type         String   
+  type         NotificationType // "NEW_BID", "BID_ACCEPTED", "SUBMISSION", "FEEDBACK", "MESSAGE"
+  message      String
+  relatedId    String   // ID of the work request or bid
+  relatedTitle String   // Title of the work request
+  relatedType  RelatedType   // "WORK_REQUEST" or "CONTRACT"
+  link         String?  // Optional deep link
+  read         Boolean  @default(false)
+  createdAt    DateTime @default(now())
+
+  // Relations
+  // user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user         User @relation("UserNotifications", fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, read])
+  @@index([createdAt])
+}
+
+
+model Contract {
+  id              String         @id @default(uuid())
+  workRequestId   String         @unique // A contract is tied to a specific work request
+  workRequest     WorkRequest    @relation("WorkRequestContract", fields: [workRequestId], references: [id])
+  acceptedBidId   String         @unique // Reference to the bid that was accepted to form this contract
+  acceptedBid     Bid            @relation("ContractAcceptedBid", fields: [acceptedBidId], references: [id])
+  councilId       String
+  council         User           @relation("CouncilContracts", fields: [councilId], references: [id])
+  expertId        String
+  expert          User           @relation("ExpertContracts", fields: [expertId], references: [id])
+  startDate       DateTime       @default(now())
+  endDate         DateTime       // Expected completion date or actual completion date
+  finalAmount     Float          // The agreed-upon amount for the contract
+  status          ContractStatus @default(ACTIVE)
+  createdAt       DateTime       @default(now())
+  updatedAt       DateTime       @updatedAt
+}
+
+enum ContractStatus {
+  ACTIVE
+  COMPLETED
+  CANCELLED
+  ON_HOLD
+}
+
 
 enum Role {
   COUNCIL
@@ -151,3 +216,11 @@ enum FeedbackStatus {
   REJECTED    // Council permanently rejected the submission
 }
 
+enum NotificationType {
+  NEW_BID
+  BID_ACCEPTED
+  SUBMISSION
+  FEEDBACK
+  MESSAGE
+  INVITE
+}

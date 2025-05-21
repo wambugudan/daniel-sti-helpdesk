@@ -6,6 +6,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import DataCard from "../components/DataCard";
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import WorkRequestModal from "../components/WorkRequestModal";
+import ModalListener from '../components/ModalListener';
 
 const MyWorkRequest = () => {
   const { currentUser } = useCurrentUser();
@@ -52,6 +53,8 @@ const MyWorkRequest = () => {
 
   return (
     <div className="container mx-auto my-6 px-4 md:px-6 lg:px-8">
+      {/* Modal listener for handling the modal open */}
+      <ModalListener currentUser={currentUser} />
       {error && <p className="text-red-500">Error: {error}</p>}
 
       <h2 className="text-xl font-semibold mb-6">My Work Requests</h2>
