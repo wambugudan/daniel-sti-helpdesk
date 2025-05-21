@@ -51,6 +51,11 @@ const ModalListener = ({ currentUser }) => {
         setLoading(false); // End Loading
       })();
     }
+
+    // log the values for debugging
+    console.log("Trying to fetch contract:", contractId);
+    console.log("Trying to fetch work request:", requestId);
+    console.log("Current user ID:", currentUser?.id);
   }, [router, currentUser]);
 
   // 4️⃣ Render the modals if data is available

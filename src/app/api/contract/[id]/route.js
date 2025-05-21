@@ -11,7 +11,8 @@ export async function GET(request, context) {
   // console.log("Type of prisma at line 8 (approx):", typeof prisma); // Add this
 
   try {
-    const { id } = await context.params; // ✅ Await params here
+    // const { id } = await context.params; // ✅ Await params here
+    const { id } =  context.params;
 
     if (!id) {
       return NextResponse.json({ error: "Missing contract ID" }, { status: 400 });

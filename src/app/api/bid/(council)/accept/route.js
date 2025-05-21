@@ -1,51 +1,7 @@
-// // File: src/app/api/bid/accept/route.js
-// import prisma from "@/libs/prisma";
-
-// export async function PUT(request) {
-//   try {
-//     const { workRequestId, bidId, userId } = await request.json();
-
-//     if (!workRequestId || !bidId || !userId) {
-//       return new Response(JSON.stringify({ error: "Missing fields" }), { status: 400 });
-//     }
-
-//     // Get the work request and check ownership
-//     const workRequest = await prisma.workRequest.findUnique({
-//       where: { id: workRequestId },
-//     });
-
-//     if (!workRequest || workRequest.userId !== userId) {
-//       return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 403 });
-//     }
-
-//     // Update the work request to accept the bid
-//     const updated = await prisma.workRequest.update({
-//       where: { id: workRequestId },
-//       data: {
-//         acceptedBidId: bidId,
-//         status: "IN_PROGRESS",
-//       },
-//       include: {
-//         acceptedBid: {
-//           include: { user: true },
-//         },
-//       },
-//     });
-
-//     return new Response(JSON.stringify(updated), {
-//       status: 200,
-//       headers: { "Content-Type": "application/json" },
-//     });
-
-//   } catch (error) {
-//     console.error("Error accepting bid:", error);
-//     return new Response(JSON.stringify({ error: "Failed to accept bid" }), { status: 500 });
-//   }
-// }
-
-
 // File: src/app/api/bid/accept/route.js
 import prisma from "@/libs/prisma";
+import { NextResponse } from "next/server";
+
 
 export async function PUT(request) {
   try {
@@ -107,6 +63,28 @@ export async function PUT(request) {
         },
       },
     });
+    
+    // 🔁 Automatically create the contract
+    let createdContract = null;
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/contract/create`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          workRequestId,
+          acceptedBidId: bid.id,
+          councilId: workRequest.user.id,
+          expertId: bid.user.id,
+          endDate: new Date(workRequest.deadline).toISOString(),
+          finalAmount: bid.amount
+        }),
+      });
+
+      createdContract = await res.json();
+    } catch (e) {
+      console.error("Contract creation failed:", e);
+    }
+
 
     // Send notification to the expert whose bid was accepted
     try {
@@ -117,10 +95,14 @@ export async function PUT(request) {
           userId: bid.user.id,
           type: "BID_ACCEPTED",
           message: `Your $${bid.amount} bid was accepted for "${workRequest.title}"`,
-          relatedId: workRequestId,
+          // relatedId: workRequestId,
+          relatedId: createdContract?.id || bid.id, 
           relatedTitle: workRequest.title,
           relatedType: "CONTRACT",
-          link: `/contract/${workRequestId}`
+          // link: `/contract/${workRequestId}`
+          // link: `/my-contracts?contractId=${contractId}` // Better for modal routing
+          link: `/my-contracts?contractId=${createdContract?.id}`
+
         }),
       });
     } catch (notificationError) {

@@ -249,6 +249,8 @@ const WorkRequestModal = ({ workRequest: initialWorkRequest, currentUser, onClos
   const handleAcceptBid = async (bidId) => {
     setAccepting(true);
     try {
+
+      // Update the work request to accept the bid
       const res = await fetch(`/api/bid/accept`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -262,10 +264,43 @@ const WorkRequestModal = ({ workRequest: initialWorkRequest, currentUser, onClos
       if (!res.ok) throw new Error("Failed to accept bid");
   
       toast.success("Bid accepted!");
+
+      // Fetch the updated work request details
+      const acceptedBid = workRequest.bids.find((b) => b.id === bidId);
+      if (!acceptedBid) {
+        toast.error("Accepted bid not found in state");
+        return;
+      }
+
+      // Create contract automatically
+      // const bid = updatedWorkRequest.bids.find(b => b.id === bidId);
+      const contractResponse = await fetch(`/api/contract/create`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          workRequestId: workRequest.id,
+          acceptedBidId: bidId,
+          councilId: workRequest.userId,
+          expertId: acceptedBid.user.id,
+          finalAmount: acceptedBid.amount,
+          endDate: new Date(Date.now() + (workRequest.durationDays || 7) * 24 * 60 * 60 * 1000), // fallback to 7 days
+        }),
+      });
+  
+      if (!contractResponse.ok) {
+        const errorData = await contractResponse.json();
+        console.error("Contract creation failed:", errorData);
+        toast.error("Failed to create contract");
+      } else {
+        toast.success("Contract created successfully!");
+      }
+
+      // Refresh the work request details and notifications
       await fetchWorkRequestDetails(); // refresh modal data
       await refreshNotifications();    // refresh notifications
+
     } catch (error) {
-      toast.error("Error accepting bid");
+      toast.error("Error accepting bid or creating contract");
       console.error("❌ Accept bid error:", error);
     } finally {
       setAccepting(false);

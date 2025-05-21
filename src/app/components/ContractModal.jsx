@@ -43,7 +43,11 @@ const ContractModal = ({ contract, currentUser, onClose, onCancelled }) => {
   const [submissionMessage, setSubmissionMessage] = useState("");
   const [file, setFile] = useState(null);
   const [editingSubmission, setEditingSubmission] = useState(false);
-  const [submitted, setSubmitted] = useState(!!contract?.acceptedBid?.Submission?.Message || !!contract?.acceptedBid?.Submission?.FileURL);
+  // const [submitted, setSubmitted] = useState(!!contract?.acceptedBid?.Submission?.Message || !!contract?.acceptedBid?.Submission?.FileURL);
+  const [submitted, setSubmitted] = useState(
+    !!contract?.acceptedBid?.submission?.message || !!contract?.acceptedBid?.submission?.fileURL
+  );
+  
   const [isDetailsExpanded, setIsDetailsExpanded] = useState(false);
 
   // State for message and file upload
@@ -56,7 +60,9 @@ const ContractModal = ({ contract, currentUser, onClose, onCancelled }) => {
   
 
   const isOwner = currentUser?.id === contract?.acceptedBid?.userId;
-  const hasSubmission = !!contract?.acceptedBid?.Submission?.Message || !!contract?.acceptedBid?.Submission?.FileURL;
+  // const hasSubmission = !!contract?.acceptedBid?.Submission?.Message || !!contract?.acceptedBid?.Submission?.FileURL;
+  const hasSubmission = !!contract?.acceptedBid?.submission?.Message || !!contract?.acceptedBid?.Submission?.FileURL;
+  
 
   const [replyDrafts, setReplyDrafts] = useState({});
 
@@ -100,7 +106,8 @@ const ContractModal = ({ contract, currentUser, onClose, onCancelled }) => {
   
       const formData = new FormData();
       formData.append("userId", currentUser.id);
-      formData.append("workRequestId", contract.id);
+      // formData.append("workRequestId", contract.id);
+      formData.append("workRequestId", contract.workRequestId);
       formData.append("message", submissionMessage);
       if (file) formData.append("file", file);
   
@@ -300,13 +307,17 @@ const ContractModal = ({ contract, currentUser, onClose, onCancelled }) => {
           >
             ×
           </button>
-          <h2 className="text-xl font-bold mb-1">{contract.title}</h2>
-          <p className="text-sm mb-4"><strong>Category:</strong> {contract.category}</p>
+          {/* <h2 className="text-xl font-bold mb-1">{contract.title}</h2> */}
+          <h2 className="text-xl font-bold mb-1">{contract.workRequest?.title}</h2>
+          {/* <p className="text-sm mb-4"><strong>Category:</strong> {contract.category}</p> */}
+          <p className="text-sm mb-4"><strong>Category:</strong> {contract.workRequest?.category}</p>
 
           {/* Details */}
           <div className="space-y-1 text-sm mb-4">
-            <p><strong>Client:</strong> {contract.user?.name}</p>
-            <p><strong>Budget:</strong> ${contract.budget}</p>
+            {/* <p><strong>Client:</strong> {contract.user?.name}</p> */}
+            <p><strong>Client:</strong> {contract.workRequest?.user?.name}</p>
+            {/* <p><strong>Budget:</strong> ${contract.budget}</p> */}
+            <p><strong>Budget:</strong> ${contract.workRequest?.budget}</p>
             <p><strong>Duration:</strong> {duration} days</p>
             <p><strong>Status:</strong> {contract.status}</p>
           </div>
