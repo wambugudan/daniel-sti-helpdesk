@@ -12,16 +12,7 @@ export async function POST(req) {
       endDate,
       finalAmount
     } = await req.json();
-
-    console.log("Contract create payload:", {
-      workRequestId,
-      acceptedBidId,
-      councilId,
-      expertId,
-      endDate,
-      finalAmount,
-    });
-    
+   
 
     // Basic validation
     if (!workRequestId || !acceptedBidId || !councilId || !expertId || !endDate || !finalAmount) {
@@ -48,39 +39,68 @@ export async function POST(req) {
 
     if (bid.workRequestId !== workRequestId) {
       return NextResponse.json({ error: "Bid does not match work request" }, { status: 400 });
-    }    
+    }
 
-    // Check for existing contract with this acceptedBidId
-    const existingContract = await prisma.contract.findUnique({
-      where: { acceptedBidId },
-    });
+    const existingContract = await prisma.contract.findFirst({
+      where: {
+        OR: [
+          { workRequestId },
+          { acceptedBidId },
+        ]
+      },
+    })
 
     if (existingContract) {
+      return NextResponse.json(existingContract, { status: 200 }); // Return existing contract if found
+    }
+
+
+    try {
+      const contract = await prisma.contract.create({
+        data: {
+          workRequestId,
+          acceptedBidId,
+          councilId,
+          expertId,
+          endDate: new Date(endDate),
+          finalAmount: parseFloat(finalAmount),
+        },
+        include: {
+          workRequest: true,
+          council: true,
+          expert: true,
+          acceptedBid: true,
+        },
+      });
+    
+      return NextResponse.json(contract, { status: 201 });
+    } catch (prismaError) {
+      console.error("🔥 Prisma contract.create error:", prismaError);
       return NextResponse.json(
-        { error: "Contract already exists for this accepted bid" },
+        { error: "Prisma error", details: prismaError.message || prismaError },
         { status: 400 }
       );
     }
-
+    
     // Create the contract
-    const contract = await prisma.contract.create({
-      data: {
-        workRequestId,
-        acceptedBidId,
-        councilId,
-        expertId,
-        endDate: new Date(endDate),
-        finalAmount: parseFloat(finalAmount),
-      },
-      include: {
-        workRequest: true,
-        council: true,
-        expert: true,
-        acceptedBid: true,
-      },
-    });
+    // const contract = await prisma.contract.create({
+    //   data: {
+    //     workRequestId,
+    //     acceptedBidId,
+    //     councilId,
+    //     expertId,
+    //     endDate: new Date(endDate),
+    //     finalAmount: parseFloat(finalAmount),
+    //   },
+    //   include: {
+    //     workRequest: true,
+    //     council: true,
+    //     expert: true,
+    //     acceptedBid: true,
+    //   },
+    // });
 
-    return NextResponse.json(contract, { status: 201 });
+    // return NextResponse.json(contract, { status: 201 });
 
   } catch (error) {
     console.error("Contract creation failed:", error);

@@ -26,15 +26,6 @@ const getFileIcon = (fileURL) => {
   }
 };
 
-// Refresh notifications function
-// This function is called to refresh the notifications when a bid is accepted or a work request is completed.
-const refreshNotifications = async () => {
-  try {
-    await fetch('/api/notifications/refresh', { method: 'POST' });
-  } catch (error) {
-    console.error("Failed to refresh notifications", error);
-  }
-};
 
 
 const WorkRequestModal = ({ workRequest: initialWorkRequest, currentUser, onClose, onDeleted }) => {
@@ -120,6 +111,20 @@ const WorkRequestModal = ({ workRequest: initialWorkRequest, currentUser, onClos
     });
     const { bid } = await res.json();
     setExistingBid(bid);
+  };
+
+  // Refresh notifications function
+  const refreshNotifications = async () => {
+    try {
+      await fetch('/api/notifications/refresh', {
+        method: 'POST',
+        headers: {
+          'x-user-id': currentUser.id, // 👈 required by backend
+        },
+      });
+    } catch (error) {
+      console.error("Failed to refresh notifications", error);
+    }
   };
 
   
@@ -247,6 +252,7 @@ const WorkRequestModal = ({ workRequest: initialWorkRequest, currentUser, onClos
   // This function is called when the council user wants to accept a bid.
   // It sends a PUT request to the server to update the work request with the accepted bid ID.
   const handleAcceptBid = async (bidId) => {
+    if (accepting) return;
     setAccepting(true);
     try {
 
@@ -265,6 +271,9 @@ const WorkRequestModal = ({ workRequest: initialWorkRequest, currentUser, onClos
   
       toast.success("Bid accepted!");
 
+      console.log("🟢 Accept bid triggered for bid ID:", bidId);
+
+
       // Fetch the updated work request details
       const acceptedBid = workRequest.bids.find((b) => b.id === bidId);
       if (!acceptedBid) {
@@ -272,28 +281,6 @@ const WorkRequestModal = ({ workRequest: initialWorkRequest, currentUser, onClos
         return;
       }
 
-      // Create contract automatically
-      // const bid = updatedWorkRequest.bids.find(b => b.id === bidId);
-      const contractResponse = await fetch(`/api/contract/create`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          workRequestId: workRequest.id,
-          acceptedBidId: bidId,
-          councilId: workRequest.userId,
-          expertId: acceptedBid.user.id,
-          finalAmount: acceptedBid.amount,
-          endDate: new Date(Date.now() + (workRequest.durationDays || 7) * 24 * 60 * 60 * 1000), // fallback to 7 days
-        }),
-      });
-  
-      if (!contractResponse.ok) {
-        const errorData = await contractResponse.json();
-        console.error("Contract creation failed:", errorData);
-        toast.error("Failed to create contract");
-      } else {
-        toast.success("Contract created successfully!");
-      }
 
       // Refresh the work request details and notifications
       await fetchWorkRequestDetails(); // refresh modal data
@@ -566,10 +553,11 @@ const WorkRequestModal = ({ workRequest: initialWorkRequest, currentUser, onClos
                                 </>
                               ) : !workRequest.acceptedBidId ? (
                                 <button
+                                  disabled={accepting}
                                   onClick={() => handleAcceptBid(bid.id)}
                                   className="text-xs px-3 py-1 rounded bg-green-600 text-white hover:bg-green-500"
                                 >
-                                  Accept Bid
+                                  {accepting ? "Processing..." : "Accept Bid"}
                                 </button>
                               ) : null}
                             </div>
