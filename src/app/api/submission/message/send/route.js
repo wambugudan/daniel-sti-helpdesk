@@ -141,7 +141,7 @@
 //   }
 // }
 
-
+// file: src/app/api/submission/message/send/route.js
 import prisma from "@/libs/prisma";
 import { writeFile, mkdir } from "fs/promises";
 import path from "path";
@@ -150,6 +150,8 @@ import { NextResponse } from "next/server";
 export async function POST(req) {
   try {
     const form = await req.formData();
+
+    console.log("🔵 Incoming submission message request");
 
     const submissionId = form.get("submissionId");
     const senderId = form.get("senderId");

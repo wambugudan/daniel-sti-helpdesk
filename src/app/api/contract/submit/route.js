@@ -129,6 +129,8 @@
 //   }
 // }
 
+
+// File: src/app/api/contract/submit/route.js
 import { NextResponse } from "next/server";
 import prisma from "@/libs/prisma";
 import { writeFile } from "fs/promises";
@@ -143,7 +145,10 @@ export async function POST(req) {
     const message = formData.get("message");
     const file = formData.get("file");
 
-    if (!userId || !workRequestId) {
+    console.log("🔍 Submitting with:", { userId, workRequestId, message });
+
+
+    if (!userId || !workRequestId || workRequestId === "undefined") {
       return NextResponse.json({ error: "Missing userId or workRequestId" }, { status: 400 });
     }
 
@@ -152,7 +157,8 @@ export async function POST(req) {
       where: {
         expertId: userId,
         workRequestId,
-        status: "ACTIVE", 
+        status: "ACTIVE",
+        // status: "IN_PROGRESS" 
       },
       include: {
         acceptedBid: true,

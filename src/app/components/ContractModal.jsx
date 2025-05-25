@@ -110,7 +110,8 @@ const ContractModal = ({ contract, currentUser, onClose, onCancelled }) => {
       const formData = new FormData();
       formData.append("userId", currentUser.id);
       // formData.append("workRequestId", contract.id);
-      formData.append("workRequestId", contract.workRequestId);
+      // formData.append("workRequestId", contract.workRequestId);
+      formData.append("workRequestId", contractData.workRequestId || contractData.id); // Use contractData to access workRequestId
       formData.append("message", submissionMessage);
       if (file) formData.append("file", file);
   
@@ -186,29 +187,57 @@ const ContractModal = ({ contract, currentUser, onClose, onCancelled }) => {
   // };
 
   // ✅ CORRECT: Fetch by contract.id from the correct contract endpoint
-const fetchContractDetails = async () => {
-  try {
-    const res = await fetch(`/api/contract/${contract.id}`, {
-      headers: { 'x-user-id': currentUser.id },
-    });
-    if (!res.ok) throw new Error("Failed to fetch contract details");
+  // const fetchContractDetails = async () => {
+  //   try {
+  //     const res = await fetch(`/api/contract/${contract.id}`, {
+  //       headers: { 'x-user-id': currentUser.id },
+  //     });
+  //     if (!res.ok) throw new Error("Failed to fetch contract details");
 
-    const updated = await res.json();
+  //     const updated = await res.json();
 
-    // 🔁 Update contract-level fields if needed here
-    setContractData(updated);
+  //     // 🔁 Update contract-level fields if needed here
+  //     setContractData(updated);
 
-    setLocalSubmission({
-      message: updated.acceptedBid?.submission?.message || "",
-      fileURL: updated.acceptedBid?.submission?.fileURL || "",
-      fileName: updated.acceptedBid?.submission?.fileName || null,
-    });
-  } catch (error) {
-    console.error("Failed to refresh contract:", error);
-  }
-};
+  //     setLocalSubmission({
+  //       message: updated.acceptedBid?.submission?.message || "",
+  //       fileURL: updated.acceptedBid?.submission?.fileURL || "",
+  //       fileName: updated.acceptedBid?.submission?.fileName || null,
+  //     });
+  //   } catch (error) {
+  //     console.error("Failed to refresh contract:", error);
+  //   }
+  // };
 
+  const fetchContractDetails = async () => {
+    try {
+      const res = await fetch(`/api/contract/${contract.id}`, {
+        headers: { 'x-user-id': currentUser.id },
+      });
 
+      console.log("🟢 Full contractData from API:", updated);
+      console.log("🟢 Current contractData:", contractData);
+
+      if (!res.ok) throw new Error("Failed to fetch contract details");
+
+      const updated = await res.json();
+
+      // Ensure the fetched data has all necessary parts
+      if (!updated.workRequest?.user || !updated.workRequest?.budget) {
+        console.warn("⚠️ Missing workRequest.user or budget in fetched contract data");
+      }
+
+      setContractData(updated); // ⬅️ this replaces the original "full" contractData
+
+      setLocalSubmission({
+        message: updated.acceptedBid?.submission?.message || "",
+        fileURL: updated.acceptedBid?.submission?.fileURL || "",
+        fileName: updated.acceptedBid?.submission?.fileName || null,
+      });
+    } catch (error) {
+      console.error("Failed to refresh contract:", error);
+    }
+  };
 
   // Handle reply submission
   const handleReplySubmit = async (feedbackId) => {
@@ -271,7 +300,10 @@ const fetchContractDetails = async () => {
           body: formData,
         });
 
+        console.log([...formData.entries()])
+
         if (!res.ok) throw new Error("Failed to send message");
+
 
         toast.success("Message sent!");
         setNewMessage("");
@@ -335,16 +367,16 @@ const fetchContractDetails = async () => {
             ×
           </button>
           {/* <h2 className="text-xl font-bold mb-1">{contract.title}</h2> */}
-          <h2 className="text-xl font-bold mb-1">{contract.workRequest?.title}</h2>
+          <h2 className="text-xl font-bold mb-1">{contractData?.workRequest?.title || contractData.title}</h2>
           {/* <p className="text-sm mb-4"><strong>Category:</strong> {contract.category}</p> */}
-          <p className="text-sm mb-4"><strong>Category:</strong> {contractData.workRequest?.category}</p>
+          <p className="text-sm mb-4"><strong>Category:</strong> {contractData.workRequest?.category || contractData.category}</p>
 
           {/* Details */}
           <div className="space-y-1 text-sm mb-4">
             {/* <p><strong>Client:</strong> {contract.user?.name}</p> */}
-            <p><strong>Client:</strong> {contractData.workRequest?.user?.name}</p>
+            <p><strong>Client:</strong> {contractData.workRequest?.user?.name || contractData.user?.name }</p>
             {/* <p><strong>Budget:</strong> ${contract.budget}</p> */}
-            <p><strong>Budget:</strong> ${contractData.workRequest?.budget}</p>
+            <p><strong>Budget:</strong> ${contractData.workRequest?.budget || contractData.budget}</p>
             <p><strong>Duration:</strong> {duration} days</p>
             <p><strong>Status:</strong> {contract.status}</p>
             {console.log("🟢 ContractData:", contractData)}
