@@ -50,6 +50,9 @@ const ContractModal = ({ contract, currentUser, onClose, onCancelled }) => {
   
   const [isDetailsExpanded, setIsDetailsExpanded] = useState(false);
 
+  const [contractData, setContractData] = useState(contract); // <== Replace all "contract" references with "contractData"
+
+
   // State for message and file upload
   const [messages, setMessages] = useState([]);
   const [newMessage, setNewMessage] = useState("");
@@ -164,23 +167,47 @@ const ContractModal = ({ contract, currentUser, onClose, onCancelled }) => {
 
 
   // Fetch contract details
-  const fetchContractDetails = async () => {
-    try {
-      const res = await fetch(`/api/work-request/${contract.id}`, {
-        headers: { 'x-user-id': currentUser.id },
-      });
-      if (!res.ok) throw new Error("Failed to fetch contract details");
-      const updated = await res.json();
-      setLocalSubmission({
-        message: updated.acceptedBid?.submission?.message || "",
-        fileURL: updated.acceptedBid?.submission?.fileURL || "",
-        fileName: updated.acceptedBid?.submission?.fileName || null,
-      });
-      // You can also update any other relevant contract state if needed
-    } catch (error) {
-      console.error("Failed to refresh contract:", error);
-    }
-  };
+  // const fetchContractDetails = async () => {
+  //   try {
+  //     const res = await fetch(`/api/work-request/${contract.id}`, {
+  //       headers: { 'x-user-id': currentUser.id },
+  //     });
+  //     if (!res.ok) throw new Error("Failed to fetch contract details");
+  //     const updated = await res.json();
+  //     setLocalSubmission({
+  //       message: updated.acceptedBid?.submission?.message || "",
+  //       fileURL: updated.acceptedBid?.submission?.fileURL || "",
+  //       fileName: updated.acceptedBid?.submission?.fileName || null,
+  //     });
+  //     // You can also update any other relevant contract state if needed
+  //   } catch (error) {
+  //     console.error("Failed to refresh contract:", error);
+  //   }
+  // };
+
+  // ✅ CORRECT: Fetch by contract.id from the correct contract endpoint
+const fetchContractDetails = async () => {
+  try {
+    const res = await fetch(`/api/contract/${contract.id}`, {
+      headers: { 'x-user-id': currentUser.id },
+    });
+    if (!res.ok) throw new Error("Failed to fetch contract details");
+
+    const updated = await res.json();
+
+    // 🔁 Update contract-level fields if needed here
+    setContractData(updated);
+
+    setLocalSubmission({
+      message: updated.acceptedBid?.submission?.message || "",
+      fileURL: updated.acceptedBid?.submission?.fileURL || "",
+      fileName: updated.acceptedBid?.submission?.fileName || null,
+    });
+  } catch (error) {
+    console.error("Failed to refresh contract:", error);
+  }
+};
+
 
 
   // Handle reply submission
@@ -310,16 +337,18 @@ const ContractModal = ({ contract, currentUser, onClose, onCancelled }) => {
           {/* <h2 className="text-xl font-bold mb-1">{contract.title}</h2> */}
           <h2 className="text-xl font-bold mb-1">{contract.workRequest?.title}</h2>
           {/* <p className="text-sm mb-4"><strong>Category:</strong> {contract.category}</p> */}
-          <p className="text-sm mb-4"><strong>Category:</strong> {contract.workRequest?.category}</p>
+          <p className="text-sm mb-4"><strong>Category:</strong> {contractData.workRequest?.category}</p>
 
           {/* Details */}
           <div className="space-y-1 text-sm mb-4">
             {/* <p><strong>Client:</strong> {contract.user?.name}</p> */}
-            <p><strong>Client:</strong> {contract.workRequest?.user?.name}</p>
+            <p><strong>Client:</strong> {contractData.workRequest?.user?.name}</p>
             {/* <p><strong>Budget:</strong> ${contract.budget}</p> */}
-            <p><strong>Budget:</strong> ${contract.workRequest?.budget}</p>
+            <p><strong>Budget:</strong> ${contractData.workRequest?.budget}</p>
             <p><strong>Duration:</strong> {duration} days</p>
             <p><strong>Status:</strong> {contract.status}</p>
+            {console.log("🟢 ContractData:", contractData)}
+
           </div>
 
           <hr className="my-3" />          
