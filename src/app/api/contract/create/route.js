@@ -80,27 +80,8 @@ export async function POST(req) {
         { error: "Prisma error", details: prismaError.message || prismaError },
         { status: 400 }
       );
-    }
-    
-    // Create the contract
-    // const contract = await prisma.contract.create({
-    //   data: {
-    //     workRequestId,
-    //     acceptedBidId,
-    //     councilId,
-    //     expertId,
-    //     endDate: new Date(endDate),
-    //     finalAmount: parseFloat(finalAmount),
-    //   },
-    //   include: {
-    //     workRequest: true,
-    //     council: true,
-    //     expert: true,
-    //     acceptedBid: true,
-    //   },
-    // });
-
-    // return NextResponse.json(contract, { status: 201 });
+    }   
+  
 
   } catch (error) {
     console.error("Contract creation failed:", error);

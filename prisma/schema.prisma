@@ -178,13 +178,14 @@ model Contract {
   startDate       DateTime       @default(now())
   endDate         DateTime       // Expected completion date or actual completion date
   finalAmount     Float          // The agreed-upon amount for the contract
-  status          ContractStatus @default(ACTIVE)
+  status          ContractStatus @default(IN_PROGRESS)
   createdAt       DateTime       @default(now())
   updatedAt       DateTime       @updatedAt
 }
 
 enum ContractStatus {
-  ACTIVE
+  // ACTIVE
+  IN_PROGRESS
   COMPLETED
   CANCELLED
   ON_HOLD

@@ -106,12 +106,20 @@ const ContractModal = ({ contract, currentUser, onClose, onCancelled }) => {
   
     try {
       setSubmitting(true);
+
+      console.log("🧠 Submitting with:", {
+        userId: currentUser.id,
+        workRequestId: contractData.acceptedBid?.workRequestId || contractData.id,
+        message: submissionMessage,
+      });
   
       const formData = new FormData();
-      formData.append("userId", currentUser.id);
-      // formData.append("workRequestId", contract.id);
-      // formData.append("workRequestId", contract.workRequestId);
-      formData.append("workRequestId", contractData.workRequestId || contractData.id); // Use contractData to access workRequestId
+      formData.append("userId", currentUser.id);   
+      
+
+      // formData.append("workRequestId", contractData.workRequestId || contractData.id); // Use contractData to access workRequestId
+      // formData.append("workRequestId", contractData.workRequestId || contractData.workRequest?.id);
+      formData.append("workRequestId", contractData.acceptedBid?.workRequestId || contractData.id);
       formData.append("message", submissionMessage);
       if (file) formData.append("file", file);
   
