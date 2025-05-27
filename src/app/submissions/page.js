@@ -11,6 +11,8 @@ import WorkRequestModal from "../components/WorkRequestModal";
 import { useTheme } from '@/context/ThemeProvider';
 import clsx from 'clsx';
 import { useHasMounted } from '@/hooks/useHasMounted';
+import { FaSpinner } from 'react-icons/fa';
+
 
 
 const Submissions = () => {
@@ -32,6 +34,7 @@ const Submissions = () => {
   const initialPage = parseInt(searchParams.get("page")) || 1;
   const [page, setPage] = useState(initialPage);
 
+  const [redirecting, setRedirecting] = useState(false);
   
 
   // Sync URL with current page
@@ -71,24 +74,6 @@ const Submissions = () => {
     <div className="container mx-auto my-6 px-4 md:px-6 lg:px-8">
       {error && <p className="text-red-500">Error: {error}</p>}
 
-      {/* 🔁 Switch User Dropdown */}
-      {/* <div className="mb-6 flex items-center gap-4">
-        <label className="text-sm font-medium">Switch User:</label>
-        <select
-          className="border px-3 py-1 rounded"
-          value={currentUser.id}
-          onChange={(e) => {
-            const selected = allUsers.find(user => user.id === e.target.value);
-            setCurrentUser(selected);
-          }}
-        >
-          {allUsers.map(user => (
-            <option key={user.id} value={user.id}>
-              {user.name} ({user.role})
-            </option>
-          ))}
-        </select>
-      </div> */}
 
       {/* Note for Council */}
       {currentUser?.role === "COUNCIL" && (
@@ -121,12 +106,32 @@ const Submissions = () => {
       {/* Add Work Request Button */}
       {currentUser.role === 'COUNCIL' && (
         <div className="flex justify-end mb-6">
+          
           <button
-            onClick={() => router.push('/new-work-request')}
-            className="bg-primary text-white font-medium px-6 py-2 rounded-md shadow-md hover:bg-primary-dark transition"
+            onClick={async () => {
+              setRedirecting(true);
+              await new Promise(resolve => setTimeout(resolve, 500)); // Optional: delay for animation
+              router.push('/new-work-request');
+            }}
+            disabled={redirecting}
+            className={clsx(
+              "font-medium px-6 py-2 rounded-md shadow-md transition duration-300",
+              redirecting
+                ? "bg-gray-400 cursor-not-allowed"
+                : "bg-primary hover:bg-primary-dark text-white"
+            )}
           >
-            + Add New Work Request
+            
+            {redirecting ? (
+              <div className="flex items-center gap-2">
+                <FaSpinner className="animate-spin" />
+                Loading...
+              </div>
+            ) : (
+              "+ Add New Work Request"
+            )}
           </button>
+
         </div>
       )}
 
