@@ -236,27 +236,28 @@ const Navbar = () => {
   // const [userRole, setUserRole] = useState(null);
   const userRole = currentUser?.role;
 
-  // useEffect(() => {
-  //   setUserRole(currentUser?.role);
-  // }, [currentUser]);
+  const publicPaths = ["/login", "/sign-in"];
 
-  // if (!currentUser || pathname === "/") return null;
   if (status === "loading" || pathname === "/") return null;
 
 
-  const links = [
-    { href: "/submissions", label: "All Work Request" },
-    ...(userRole === "COUNCIL"
+  const links = 
+    status === "authenticated" && currentUser && !publicPaths.includes(pathname)
       ? [
-          { href: "/my-work-request", label: "My Work Request" },
-          { href: "/expert-profiles", label: "Expert Profiles" },
+          { href: "/submissions", label: "All Work Request" },
+          ...(userRole === "COUNCIL"
+            ? [
+                { href: "/my-work-request", label: "My Work Request" },
+                { href: "/expert-profiles", label: "Expert Profiles" },
+              ]
+            : []),
+          ...(userRole === "EXPERT"
+            ? [{ href: "/my-contracts", label: "My Contracts" }]
+            : []),
+          { href: "/my-profile", label: "My Profile" },
         ]
-      : []),
-    ...(userRole === "EXPERT"
-      ? [{ href: "/my-contracts", label: "My Contracts" }]
-      : []),
-    { href: "/my-profile", label: "My Profile" },
-  ];
+      : [];
+
 
   return (
     <nav

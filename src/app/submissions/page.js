@@ -575,7 +575,7 @@
 
 
 
-
+// File: src/app/submissions/page.js
 'use client';
 
 import { useState, useEffect, useMemo } from 'react';
@@ -669,35 +669,36 @@ const Submissions = () => {
       return;
     }
 
-    const fetchWorkRequests = async () => {
-      setLoading(true);
-      try {
-        const queryParams = new URLSearchParams({
-          page,
-          limit,
-          ...(status !== 'ALL' && { status }),
-          ...(category !== 'ALL' && { category }),
-          ...(sortBy && { sortBy }),
-        });
+  const fetchWorkRequests = async () => {
+    setLoading(true);
+    try {
+      const queryParams = new URLSearchParams({
+        page,
+        limit,
+        status: 'OPEN', // force status to OPEN here
+        ...(category !== 'ALL' && { category }),
+        ...(sortBy && { sortBy }),
+      });
 
-        const res = await fetch(`/api/workRequests?${queryParams.toString()}`);
-        
-        if (!res.ok) throw new Error("Failed to fetch work requests");
+      const res = await fetch(`/api/workRequests?${queryParams.toString()}`);
 
-        const { data, pagination } = await res.json();
-        setWorkRequests(data);
-        setTotalPages(pagination.totalPages);
-        setError(null);
-      } catch (err) {
-        console.error("Error fetching work requests:", err);
-        setError(err.message);
-      } finally {
-        setLoading(false);
-      }
+      if (!res.ok) throw new Error("Failed to fetch work requests");
+
+      const { data, pagination } = await res.json();
+      setWorkRequests(data);
+      setTotalPages(pagination.totalPages);
+      setError(null);
+    } catch (err) {
+      console.error("Error fetching work requests:", err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
     };
 
     fetchWorkRequests();
-  }, [page, limit, status, category, sortBy, hasMounted, sessionStatus]);
+  }, [page, limit, category, sortBy, hasMounted, sessionStatus]);
+
 
 
   // --- Conditional Rendering based on state and authentication ---
