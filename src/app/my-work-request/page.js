@@ -7,9 +7,15 @@ import DataCard from "../components/DataCard";
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 import WorkRequestModal from "../components/WorkRequestModal";
 import ModalListener from '../components/ModalListener';
+import { FaSpinner } from 'react-icons/fa';
+import clsx from "clsx";
+
 
 const MyWorkRequest = () => {
-  const { currentUser } = useCurrentUser();
+  // const { currentUser } = useCurrentUser();
+  const { currentUser, setCurrentUser, allUsers } = useCurrentUser();
+  
+
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -17,6 +23,8 @@ const MyWorkRequest = () => {
   const [selectedRequest, setSelectedRequest] = useState(null);
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
+
+  const [redirecting, setRedirecting] = useState(false);
 
   const [limit] = useState(5);
   const [totalPages, setTotalPages] = useState(1);
@@ -58,6 +66,38 @@ const MyWorkRequest = () => {
       {error && <p className="text-red-500">Error: {error}</p>}
 
       <h2 className="text-xl font-semibold mb-6">My Work Requests</h2>
+
+      {/* Add Work Request Button */}
+      {currentUser?.role === 'COUNCIL' && (
+        <div className="flex justify-end mb-6">
+          
+          <button
+            onClick={async () => {
+              setRedirecting(true);
+              await new Promise(resolve => setTimeout(resolve, 100)); // Optional: delay for animation
+              router.push('/new-work-request');
+            }}
+            disabled={redirecting}
+            className={clsx(
+              "font-medium px-6 py-2 rounded-md shadow-md transition duration-300",
+              redirecting
+                ? "bg-gray-400 cursor-not-allowed"
+                : "bg-primary hover:bg-primary-dark text-white"
+            )}
+          >
+            
+            {redirecting ? (
+              <div className="flex items-center gap-2">
+                <FaSpinner className="animate-spin" />
+                Loading...
+              </div>
+            ) : (
+              "+ Add New Work Request"
+            )}
+          </button>
+
+        </div>
+      )}
 
       {loading ? (
         <div className="text-center py-10 text-gray-500 text-sm">Loading work requests...</div>

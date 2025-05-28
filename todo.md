@@ -18,20 +18,20 @@
 ## 🏗️ TO DO
 
 ### 📂 Expert Dashboard
-- [ ] Create `/my-contracts` view  
-- [ ] Display only `IN_PROGRESS` and `CLOSED` requests accepted by expert  
-- [ ] Add submission feature (file + message)  
+- [x] Create `/my-contracts` view  
+- [x] Display only `IN_PROGRESS` and `CLOSED` requests accepted by expert  
+- [x] Add submission feature (file + message)  
 
 ### 📤 Expert Work Submission
-- [ ] “Submit Work” button for accepted experts  
-- [ ] Upload deliverable and message  
-- [ ] Trigger council’s review  
+- [x] “Submit Work” button for accepted experts  
+- [x] Upload deliverable and message  
+- [x] Trigger council’s review  
 
 ### 📋 Council Review
-- [ ] Show submitted files/messages  
-- [ ] “Mark as Completed” button  
-- [ ] Show confetti  
-- [ ] Transition to `CLOSED`  
+- [x] Show submitted files/messages  
+- [x] “Mark as Completed” button  
+- [x] Show confetti  
+- [x] Transition to `CLOSED`  
 
 ## 🧠 Nice to Have
 

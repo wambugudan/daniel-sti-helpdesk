@@ -12,6 +12,7 @@ import { useTheme } from '@/context/ThemeProvider';
 import clsx from 'clsx';
 import { useHasMounted } from '@/hooks/useHasMounted';
 import { FaSpinner } from 'react-icons/fa';
+import FilterControls from '../components/FilterControls';
 
 
 
@@ -35,6 +36,10 @@ const Submissions = () => {
   const [page, setPage] = useState(initialPage);
 
   const [redirecting, setRedirecting] = useState(false);
+
+  const [status, setStatus] = useState('ALL');
+  const [category, setCategory] = useState('ALL');
+  const [sortBy, setSortBy] = useState('newest');
   
 
   // Sync URL with current page
@@ -47,7 +52,17 @@ const Submissions = () => {
     const fetchWorkRequests = async () => {
       setLoading(true);
       try {
-        const res = await fetch(`/api/workRequests?page=${page}&limit=${limit}`);
+        const queryParams = new URLSearchParams({
+          page,
+          limit,
+          ...(status && { status }),
+          ...(category && { category }),
+          ...(sortBy && { sortBy }),
+        });
+
+        const res = await fetch(`/api/workRequests?${queryParams.toString()}`);
+
+        // const res = await fetch(`/api/workRequests?page=${page}&limit=${limit}`);
         
         if (!res.ok) throw new Error("Failed to fetch work requests");
 
@@ -64,7 +79,7 @@ const Submissions = () => {
     };
 
     fetchWorkRequests();
-  }, [page, limit]);
+  }, [page, limit, status, category, sortBy]);
 
   // All for hydration
   const hasMounted = useHasMounted()
@@ -102,6 +117,15 @@ const Submissions = () => {
         </div>
       )}
 
+      <FilterControls
+        status={status}
+        setStatus={setStatus}
+        category={category}
+        setCategory={setCategory}
+        sortBy={sortBy}
+        setSortBy={setSortBy}
+      />
+
 
       {/* Add Work Request Button */}
       {currentUser.role === 'COUNCIL' && (
@@ -110,7 +134,7 @@ const Submissions = () => {
           <button
             onClick={async () => {
               setRedirecting(true);
-              await new Promise(resolve => setTimeout(resolve, 500)); // Optional: delay for animation
+              await new Promise(resolve => setTimeout(resolve, 100)); // Optional: delay for animation
               router.push('/new-work-request');
             }}
             disabled={redirecting}
