@@ -9,9 +9,11 @@ import Link from "next/link";
 // import img2 from "public/assets/images/logos/new_1.png";
 // import partners from "public/assets/images/logos/partner_bottom.png";
 import { useState } from "react";
+import { useSession } from "next-auth/react";
 
 export default function Home() {
   const [showMore, setShowMore] = useState(false)
+  const { data: session } = useSession();
 
   // Overdidding user auth for dev purposes
   const [user, setUser] = useState(true)
@@ -71,7 +73,7 @@ export default function Home() {
 
               <div className="mt-16 flex flex-wrap justify-center gap-y-4 gap-x-6">
                 {/* I have overridden the authenticated user with a useState for dev purposes */}
-                {user ? (
+                {session?.user ? (
                   <Link
                     href="/submissions"
                     className="relative flex h-11 w-full items-center justify-center px-9 before:absolute before:inset-0 before:rounded-md before:bg-primary before:transition before:duration-300 hover:before:scale-105 active:duration-75 active:before:scale-95 sm:w-max"
@@ -82,7 +84,7 @@ export default function Home() {
                   </Link>
                 ) : (
                   <Link
-                    href="/sign-in"
+                    href="/login"
                     className="relative flex h-11 w-full items-center justify-center px-9 before:absolute before:inset-0 before:rounded-md before:bg-primary before:transition before:duration-300 hover:before:scale-105 active:duration-75 active:before:scale-95 sm:w-max"
                   >
                     <span className="relative text-base font-semibold text-white">

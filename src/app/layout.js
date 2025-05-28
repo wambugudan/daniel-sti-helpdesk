@@ -1,11 +1,13 @@
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+// import { SessionProvider } from "next-auth/react";
 import Footer from "./components/Footer";
 import ClientOnly from "./components/ClientOnly";
 import Navbar from "./components/Navbar"; // Import Navbar component
 import { ThemeProvider } from "@/context/ThemeProvider"; // Import ThemeProvider
 import { Toaster } from "react-hot-toast";
 import ThemedToaster from "./components/ThemedToaster";
+import { Providers } from "./components/Providers";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -36,31 +38,33 @@ export default function RootLayout({ children }) {
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <ThemeProvider> {/* 🔹 Wrap app inside ThemeProvider */}
-          <div className="flex flex-col min-h-screen">
+        <Providers>
+          <ThemeProvider> {/* 🔹 Wrap app inside ThemeProvider */}
+            <div className="flex flex-col min-h-screen">
 
-            {/*  Navbar */}
-            {/* Wraping with ClientOnly to allow for hydration */}
-            <ClientOnly>
-              <Navbar />
-            </ClientOnly>   
+              {/*  Navbar */}
+              {/* Wraping with ClientOnly to allow for hydration */}
+              <ClientOnly>
+                <Navbar />
+              </ClientOnly>   
 
-            {/* Toasts */}
-            <ClientOnly>              
-              <ThemedToaster />
-            </ClientOnly>         
-            
-            <main className="flex-grow container mx-auto px-4 md:px-6 lg:px-8">
-              {children}
-            </main> 
-            
-            {/* Footer */}
-            {/* Wraping with ClientOnly to allow for hydration */}
-            <ClientOnly>
-              <Footer />
-            </ClientOnly>
-          </div>
-        </ThemeProvider>
+              {/* Toasts */}
+              <ClientOnly>              
+                <ThemedToaster />
+              </ClientOnly>         
+              
+              <main className="flex-grow container mx-auto px-4 md:px-6 lg:px-8">
+                {children}
+              </main> 
+              
+              {/* Footer */}
+              {/* Wraping with ClientOnly to allow for hydration */}
+              <ClientOnly>
+                <Footer />
+              </ClientOnly>
+            </div>
+          </ThemeProvider>
+        </Providers>
       </body>
     </html>
   );

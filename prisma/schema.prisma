@@ -7,34 +7,57 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// model User {
+//   id           String        @id @default(cuid())
+//   name         String
+//   email        String        @unique
+//   role         Role
+
+//   // Work requests created by the user (Council)
+//   workRequests WorkRequest[] @relation("UserWorkRequests")
+
+//   // Bids placed by the expert
+//   bids         Bid[] @relation("UserBids")
+
+//   // Invites sent by the Council
+//   sentInvites  Invite[] @relation("CouncilInvites")
+
+//   // Invites received by an expert
+//   receivedInvites Invite[] @relation("ExpertInvites")
+
+//   // Messages sent by the user (Council or Expert)
+//   submissionMessages SubmissionMessage[] @relation("UserMessages")
+
+//   // notification Notification[]
+//   notifications Notification[] @relation("UserNotifications")
+
+//   councilContracts Contract[] @relation("CouncilContracts")
+
+//   expertContracts  Contract[] @relation("ExpertContracts") 
+// }
+
 model User {
   id           String        @id @default(cuid())
   name         String
   email        String        @unique
-  role         Role
+  password     String?        // 🔐 Add hashed password
+  role         Role          @default(EXPERT)
+  approved     Boolean       @default(false) // ✅ For admin approval
 
-  // Work requests created by the user (Council)
-  workRequests WorkRequest[] @relation("UserWorkRequests")
+  // Timestamps
+  createdAt    DateTime      @default(now())
 
-  // Bids placed by the expert
-  bids         Bid[] @relation("UserBids")
-
-  // Invites sent by the Council
-  sentInvites  Invite[] @relation("CouncilInvites")
-
-  // Invites received by an expert
-  receivedInvites Invite[] @relation("ExpertInvites")
-
-  // Messages sent by the user (Council or Expert)
-  submissionMessages SubmissionMessage[] @relation("UserMessages")
-
-  // notification Notification[]
-  notifications Notification[] @relation("UserNotifications")
-
-  councilContracts Contract[] @relation("CouncilContracts")
-
-  expertContracts  Contract[] @relation("ExpertContracts") 
+  // Relations
+  workRequests      WorkRequest[]        @relation("UserWorkRequests")     // Created by Council
+  bids              Bid[]                @relation("UserBids")             // Placed by Expert
+  sentInvites       Invite[]             @relation("CouncilInvites")       // Sent by Council
+  receivedInvites   Invite[]             @relation("ExpertInvites")        // Received by Expert
+  submissionMessages SubmissionMessage[] @relation("UserMessages")         // All messages
+  notifications     Notification[]       @relation("UserNotifications")
+  councilContracts  Contract[]           @relation("CouncilContracts")
+  expertContracts   Contract[]           @relation("ExpertContracts")
 }
+
 
 model WorkRequest {
   id          String    @id @default(uuid())
@@ -192,9 +215,14 @@ enum ContractStatus {
 }
 
 
+// enum Role {
+//   COUNCIL
+//   EXPERT
+// }
 enum Role {
   COUNCIL
   EXPERT
+  ADMIN
 }
 
 enum InviteStatus {

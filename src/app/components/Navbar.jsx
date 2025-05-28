@@ -215,11 +215,12 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { useSession, signIn, signOut } from "next-auth/react";
 import { useState, useEffect } from "react";
 import { Menu, X, Moon, Sun } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { useTheme } from "@/context/ThemeProvider";
-import { useCurrentUser } from "@/hooks/useCurrentUser";
+// import { useCurrentUser } from "@/hooks/useCurrentUser";
 import { useHasMounted } from "@/hooks/useHasMounted";
 import NotificationDropdown from "./NotificationDropdown";
 
@@ -227,15 +228,21 @@ const Navbar = () => {
   const [menuOpen, setMenuOpen] = useState(false);
   const pathname = usePathname();
   const { theme, toggleTheme } = useTheme();
-  const { currentUser, setCurrentUser, allUsers } = useCurrentUser();
+  // const { currentUser, setCurrentUser, allUsers } = useCurrentUser();
+  const { data: session, status } = useSession();
+  const currentUser = session?.user;
+
   const hasMounted = useHasMounted();
-  const [userRole, setUserRole] = useState(null);
+  // const [userRole, setUserRole] = useState(null);
+  const userRole = currentUser?.role;
 
-  useEffect(() => {
-    setUserRole(currentUser?.role);
-  }, [currentUser]);
+  // useEffect(() => {
+  //   setUserRole(currentUser?.role);
+  // }, [currentUser]);
 
-  if (!currentUser || pathname === "/") return null;
+  // if (!currentUser || pathname === "/") return null;
+  if (status === "loading" || pathname === "/") return null;
+
 
   const links = [
     { href: "/submissions", label: "All Work Request" },
@@ -287,26 +294,7 @@ const Navbar = () => {
         </button>
       </div>
 
-      {/* User Switcher */}
-      {hasMounted && (
-        <div className="my-4 md:my-0 md:ml-auto px-4">
-          <label className="text-sm mr-2 font-medium">Switch User:</label>
-          <select
-            className="border px-3 py-1 rounded text-sm"
-            value={currentUser?.id}
-            onChange={(e) => {
-              const selected = allUsers.find((user) => user.id === e.target.value);
-              if (selected) setCurrentUser(selected);
-            }}
-          >
-            {allUsers.map((user) => (
-              <option key={user.id} value={user.id}>
-                {user.name} ({user.role})
-              </option>
-            ))}
-          </select>
-        </div>
-      )}
+      
 
       {/* Links + Notifications */}
       <div
@@ -339,6 +327,33 @@ const Navbar = () => {
           {hasMounted && currentUser && (
             <NotificationDropdown currentUser={currentUser} />
           )}
+
+          {/* User Actions */}
+          <div className="mt-4 md:mt-0 md:ml-4 flex items-center gap-4">
+            {status === "loading" ? (
+              <p className="text-sm text-gray-500">Loading...</p>
+            ) : currentUser ? (
+              <>
+                <span className="text-sm font-medium hidden md:block">
+                  👋 {currentUser.name} ({currentUser.role})
+                </span>
+                <button
+                  onClick={() => signOut()}
+                  className="text-sm px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600"
+                >
+                  Logout
+                </button>
+              </>
+            ) : (
+              <button
+                onClick={() => signIn()}
+                className="text-sm px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700"
+              >
+                Login
+              </button>
+            )}
+          </div>
+
         </div>
       </div>
     </nav>

@@ -3,6 +3,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
 // import DataCard from '@/app/components/DataCard';
@@ -16,6 +17,8 @@ const MyContracts = () => {
   const searchParams = useSearchParams();
   const { currentUser } = useCurrentUser();
 
+  const { data: session } = useSession();
+
   const [contracts, setContracts] = useState([]);
   const [selectedContract, setSelectedContract] = useState(null);
   const [error, setError] = useState(null);
@@ -25,6 +28,16 @@ const MyContracts = () => {
   const [totalPages, setTotalPages] = useState(1);
   const initialPage = parseInt(searchParams.get('page')) || 1;
   const [page, setPage] = useState(initialPage);
+
+
+  useEffect(() => {
+    if (session) {
+      console.log("✅ User Role:", session.user.role);
+      console.log("✅ User ID:", session.user.id);
+    } else {
+      console.log("❌ Not logged in");
+    }
+  }, [session]);
 
   useEffect(() => {
     router.replace(`?page=${page}`);
