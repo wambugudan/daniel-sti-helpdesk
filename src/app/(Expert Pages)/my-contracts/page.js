@@ -6,7 +6,6 @@ import { useEffect, useState } from 'react';
 import { useSession } from "next-auth/react";
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useCurrentUser } from '@/hooks/useCurrentUser';
-// import DataCard from '@/app/components/DataCard';
 import ContractCard from '@/app/components/ContractCard';
 import ContractModal from '@/app/components/ContractModal';
 import ModalListener from '@/app/components/ModalListener';

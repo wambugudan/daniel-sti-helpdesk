@@ -3,38 +3,11 @@ generator client {
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
+  // Use environment variable for database URL
   url      = env("DATABASE_URL")
 }
 
-// model User {
-//   id           String        @id @default(cuid())
-//   name         String
-//   email        String        @unique
-//   role         Role
-
-//   // Work requests created by the user (Council)
-//   workRequests WorkRequest[] @relation("UserWorkRequests")
-
-//   // Bids placed by the expert
-//   bids         Bid[] @relation("UserBids")
-
-//   // Invites sent by the Council
-//   sentInvites  Invite[] @relation("CouncilInvites")
-
-//   // Invites received by an expert
-//   receivedInvites Invite[] @relation("ExpertInvites")
-
-//   // Messages sent by the user (Council or Expert)
-//   submissionMessages SubmissionMessage[] @relation("UserMessages")
-
-//   // notification Notification[]
-//   notifications Notification[] @relation("UserNotifications")
-
-//   councilContracts Contract[] @relation("CouncilContracts")
-
-//   expertContracts  Contract[] @relation("ExpertContracts") 
-// }
 
 model User {
   id           String        @id @default(cuid())
