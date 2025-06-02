@@ -1,63 +1,3 @@
-// // File: src/app/components/FilterControls.jsx
-// 'use client';
-
-// import React from 'react';
-
-// const FilterControls = ({
-//   category,
-//   setCategory,
-//   sortBy,
-//   setSortBy,
-//   categories = [], // You can pass this in if you want dynamic options
-// }) => {
-//   const sortOptions = [
-//     { value: 'newest', label: 'Newest' },
-//     { value: 'deadline', label: 'Deadline' },
-//     { value: 'bids', label: 'Bid Count' },
-//   ];
-
-//   const defaultCategories = ['ALL', 'Design', 'Writing', 'Research', 'Development']; // fallback
-
-//   return (
-//     <div className="flex flex-wrap gap-4 mb-6 items-center">
-//       {/* Category Filter */}
-//       <div>
-//         <label className="block text-sm font-medium mb-1">Category</label>
-//         <select
-//           className="border rounded px-3 py-2 w-40"
-//           value={category}
-//           onChange={(e) => setCategory(e.target.value)}
-//         >
-//           {(categories.length ? ['ALL', ...categories] : defaultCategories).map((opt) => (
-//             <option key={opt} value={opt}>
-//               {opt}
-//             </option>
-//           ))}
-//         </select>
-//       </div>
-
-//       {/* Sort By */}
-//       <div>
-//         <label className="block text-sm font-medium mb-1">Sort By</label>
-//         <select
-//           className="border rounded px-3 py-2 w-40"
-//           value={sortBy}
-//           onChange={(e) => setSortBy(e.target.value)}
-//         >
-//           {sortOptions.map((opt) => (
-//             <option key={opt.value} value={opt.value}>
-//               {opt.label}
-//             </option>
-//           ))}
-//         </select>
-//       </div>
-//     </div>
-//   );
-// };
-
-// export default FilterControls;
-
-
 // File: src/app/components/FilterControls.jsx
 'use client';
 
@@ -121,22 +61,7 @@ const FilterControls = ({
         </select>
       </div>
 
-      {/* Sort By */}
-      {/* <div>
-        <label htmlFor="sortBy" className="block text-sm font-medium mb-1">Sort By</label>
-        <select
-          id="sortBy"
-          className="border rounded px-3 py-2 w-40"
-          value={sortBy}
-          onChange={(e) => setSortBy(e.target.value)}
-        >
-          {sortOptions.map((opt) => (
-            <option key={opt.value} value={opt.value}>
-              {opt.label}
-            </option>
-          ))}
-        </select>
-      </div> */}
+      
       {/* Sort By Field */}
       <div>
         <label htmlFor="sortByField" className="block text-sm font-medium mb-1">Sort By</label>
