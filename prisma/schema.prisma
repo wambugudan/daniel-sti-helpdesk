@@ -19,8 +19,17 @@ model User {
   role         Role          @default(EXPERT)
   approved     Boolean       @default(false) // ✅ For admin approval
 
+    // NEW PROFILE FIELDS
+  image                      String?   // URL for profile picture
+  areaOfProfessionalExperience String? // Text field for professional experience
+  publications               String?   // Simple text field for publications/portfolio links
+  linkedinUrl                String?   // Link to LinkedIn profile
+  githubUrl                  String?   // Link to GitHub profile
+  websiteUrl                 String?   // Link to personal website/portfolio
+
   // Timestamps
   createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt @default(now()) // Added for consistency
 
   // Relations
   workRequests      WorkRequest[]        @relation("UserWorkRequests")     // Created by Council
