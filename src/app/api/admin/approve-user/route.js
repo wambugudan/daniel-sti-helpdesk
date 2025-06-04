@@ -1,3 +1,4 @@
+// File: src/app/api/admin/approve-user/route.js
 import { NextResponse } from 'next/server';
 import prisma from '@/libs/prisma';
 
