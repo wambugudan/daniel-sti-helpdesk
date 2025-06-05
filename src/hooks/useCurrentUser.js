@@ -30,7 +30,7 @@
 //   return { currentUser, setCurrentUser, allUsers: mockUsers, isLoaded };
 // };
 
-
+// File: src/hooks/useCurrentUser.js
 'use client';
 
 import { useSession } from "next-auth/react";
