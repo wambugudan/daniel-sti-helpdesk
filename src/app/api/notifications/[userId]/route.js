@@ -1,3 +1,4 @@
+// file: src/app/api/notifications/[userId]/route.js
 import prisma from "@/libs/prisma";
 import { NextResponse } from "next/server";
 
