@@ -18,6 +18,7 @@ model User {
   password     String?        // 🔐 Add hashed password
   role         Role          @default(EXPERT)
   approved     Boolean       @default(false) // ✅ For admin approval
+  forcePasswordChange   Boolean     @default(false) // ✅ For admin provided password reset
 
     // NEW PROFILE FIELDS
   image                      String?   // URL for profile picture

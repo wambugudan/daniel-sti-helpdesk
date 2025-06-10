@@ -30,6 +30,7 @@ export const authOptions = { // <--- EXPORT THIS
           name: user.name,
           email: user.email,
           role: user.role,
+          forcePasswordChange: user.forcePasswordChange, // Include this field for password change logic
         };
       },
     }),
@@ -39,6 +40,7 @@ export const authOptions = { // <--- EXPORT THIS
       if (user) {
         token.role = user.role;
         token.id = user.id;
+        token.forcePasswordChange = user.forcePasswordChange;
       }
       return token;
     },
@@ -46,6 +48,7 @@ export const authOptions = { // <--- EXPORT THIS
       if (token) {
         session.user.id = token.id;
         session.user.role = token.role;
+        session.user.forcePasswordChange = token.forcePasswordChange; 
       }
       return session;
     },

@@ -29,23 +29,6 @@ const Navbar = () => {
   if (status === "loading" || pathname === "/") return null;
 
 
-  // const links = 
-  //   status === "authenticated" && currentUser && !publicPaths.includes(pathname)
-  //     ? [
-  //         { href: "/submissions", label: "All Work Request" },
-  //         ...(userRole === "COUNCIL"
-  //           ? [
-  //               { href: "/my-work-request", label: "My Work Request" },
-  //               { href: "/expert-profiles", label: "Expert Profiles" },
-  //             ]
-  //           : []),
-  //         ...(userRole === "EXPERT"
-  //           ? [{ href: "/my-contracts", label: "My Contracts" }]
-  //           : []),
-  //         { href: "/my-profile", label: "My Profile" },
-  //       ]
-  //     : [];
-
   const links =
     status === "authenticated" && currentUser && !publicPaths.includes(pathname)
       ? [
