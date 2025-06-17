@@ -268,7 +268,6 @@ export default function Home() {
     buttonText = "Get started"; // Text for unauthenticated users
   }
 
-
   return (
     <div>
       <div className="relative mx-auto px-6 md:px-4" id="home">

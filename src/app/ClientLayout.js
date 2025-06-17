@@ -50,10 +50,10 @@ function LayoutContent({ children }) {
         router.push('/change-password');
       }
     }
-    if (status === 'authenticated' && session?.user && !session.user.forcePasswordChange && pathname === '/change-password') {
-      console.log("Redirecting away from /change-password as forcePasswordChange is false.");
-      router.push('/dashboard');
-    }
+    // if (status === 'authenticated' && session?.user && !session.user.forcePasswordChange && pathname === '/change-password') {
+    //   console.log("Redirecting away from /change-password as forcePasswordChange is false.");
+    //   router.push('/dashboard');
+    // }
   }, [session, status, router, pathname]);
 
   useEffect(() => {

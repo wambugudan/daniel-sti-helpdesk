@@ -1,3 +1,4 @@
+// File: src/app/api/auth/signup/route.js
 import { hash } from 'bcrypt';
 import prisma from '@/libs/prisma';
 

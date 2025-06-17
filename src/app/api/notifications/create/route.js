@@ -24,6 +24,9 @@ export async function POST(req) {
         if (type === "MESSAGE") {
           return `/my-work-request?requestId=${relatedId}&message=true`;
         }
+        if (type === "NEW_BID") { // This will now correctly match the 'NEW_BID' enum type
+          return `/my-work-request?requestId=${relatedId}&bid=true`; // Or whatever query parameter is appropriate
+        }
         return `/my-work-request?requestId=${relatedId}`;
       }
       

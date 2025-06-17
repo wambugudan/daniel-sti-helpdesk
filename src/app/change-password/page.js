@@ -1,28 +1,56 @@
 // src/app/change-password/page.js
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react'; // Import useEffect
 import { useSession } from 'next-auth/react';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation'; // Import usePathname for safety
 import toast from 'react-hot-toast';
 
 export default function ChangePasswordPage() {
-  const { data: session, update: updateSession } = useSession();
+  const { data: session, update: updateSession, status } = useSession(); // Also get status
   const router = useRouter();
+  const pathname = usePathname(); // Get current pathname
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // Redirect if not authenticated or if password change is not forced (already done)
-  if (session?.user && !session.user.forcePasswordChange) {
-    router.push('/dashboard'); // Or wherever you want them to go
-    return null; // Don't render anything
-  }
+  // Use useEffect to handle redirects based on session status
+  useEffect(() => {
+    // If session is still loading, do nothing
+    if (status === 'loading') return;
 
-  // Show a loading indicator if session is still loading
-  if (!session && typeof session === 'undefined') {
+    // If unauthenticated, redirect to login (if not already there)
+    if (status === 'unauthenticated') {
+      if (pathname !== '/login') { // Avoid infinite redirects if login page is /login
+        router.push('/login');
+      }
+      return;
+    }
+
+    // If authenticated and password change is NOT required, redirect to submissions
+    if (session?.user && !session.user.forcePasswordChange) {
+      if (pathname !== '/submissions') {
+        console.log("Redirecting to /submissions from useEffect (password change complete).");
+        router.push('/submissions');
+      }
+      return; // Stop further execution in this effect
+    }
+
+    // If authenticated and password change IS required, ensure user is on /change-password
+    if (session?.user && session.user.forcePasswordChange) {
+      if (pathname !== '/change-password') {
+        console.log("Redirecting to /change-password from useEffect (password change required).");
+        router.push('/change-password');
+      }
+      return; // Stop further execution in this effect
+    }
+
+  }, [session, status, router, pathname]); // Dependencies
+
+  // Render loading state while session is being fetched
+  if (status === 'loading') {
     return (
       <div className="flex justify-center items-center h-screen">
         <p>Loading...</p>
@@ -30,27 +58,33 @@ export default function ChangePasswordPage() {
     );
   }
 
+  // If user is authenticated and does not need to change password, or is unauthenticated (handled by useEffect),
+  // prevent rendering the form until redirect takes place.
+  if (status === 'authenticated' && !session.user.forcePasswordChange) {
+    return null;
+  }
+
+  // If unauthenticated after loading, also return null to let useEffect handle redirect
+  if (status === 'unauthenticated') {
+    return null;
+  }
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    // setError('');
-    // setSuccess('');
     toast.dismiss();
 
     if (newPassword !== confirmPassword) {
-    //   setError('Passwords do not match.');
       toast.error('Passwords do not match.');
       return;
     }
 
     if (newPassword.length < 8) {
-    //   setError('Password must be at least 8 characters long.');
       toast.error('Password must be at least 8 characters long.');
       return;
     }
 
     setLoading(true);
     try {
-      // Create an API endpoint for changing password for the currently logged-in user
       const res = await fetch('/api/user/change-password', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -63,11 +97,12 @@ export default function ChangePasswordPage() {
         throw new Error(data.error || 'Failed to change password');
       }
 
-    //   setSuccess('Password changed successfully! Redirecting...');
       toast.success('Password changed successfully! Redirecting...');
-      // Update the session to reflect that forcePasswordChange is now false
-      await updateSession({ forcePasswordChange: false }); // This is for client-side state
-      router.push('/submissions'); // Redirect to home page
+      // Update the session: this will trigger the useEffect above to handle the redirect
+      await updateSession({ forcePasswordChange: false });
+
+      // No direct router.push here; let the useEffect handle it after session update
+      return; // Stop further execution in handleSubmit
 
     } catch (err) {
       setError(err.message);
