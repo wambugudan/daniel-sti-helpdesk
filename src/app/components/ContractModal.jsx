@@ -7,6 +7,7 @@ import { useTheme } from "@/context/ThemeProvider";
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";
+import clsx from "clsx";
 import { FaFilePdf, FaFileWord, FaFileImage, FaFileAlt } from "react-icons/fa";
 
 const getFileIcon = (fileURL) => {
@@ -92,11 +93,23 @@ const ContractModal = ({ contract, currentUser, onClose, onCancelled }) => {
   });
 
 
-  const duration =
-    contract.deadline && contract.createdAt
-      ? Math.ceil((new Date(contract.deadline) - new Date(contract.createdAt)) / (1000 * 60 * 60 * 24))
-      : "N/A";
+  // const duration =
+  //   contract.deadline && contract.createdAt
+  //     ? Math.ceil((new Date(contract.deadline) - new Date(contract.createdAt)) / (1000 * 60 * 60 * 24))
+  //     : "N/A";
 
+  
+  const calculateWorkRequestDuration = (workRequest) => {
+    // Check for existence of workRequest and its properties
+    if (!workRequest || !workRequest.deadline || !workRequest.createdAt) return "N/A";
+    
+    const start = new Date(workRequest.createdAt);
+    const end = new Date(workRequest.deadline);
+    const diffTime = Math.abs(end.getTime() - start.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    return `${diffDays} days`;
+  };
+  
 
   const handleSubmit = async () => {
     if (!submissionMessage && !file) {
@@ -385,7 +398,7 @@ const ContractModal = ({ contract, currentUser, onClose, onCancelled }) => {
             <p><strong>Client:</strong> {contractData.workRequest?.user?.name || contractData.user?.name }</p>
             {/* <p><strong>Budget:</strong> ${contract.budget}</p> */}
             <p><strong>Budget:</strong> ${contractData.workRequest?.budget || contractData.budget}</p>
-            <p><strong>Duration:</strong> {duration} days</p>
+            <p><strong>Duration:</strong> {calculateWorkRequestDuration(contract.workRequest)}</p>
             <p><strong>Status:</strong> {contract.status}</p>
             {console.log("🟢 ContractData:", contractData)}
 

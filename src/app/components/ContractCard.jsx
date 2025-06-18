@@ -10,10 +10,35 @@ import clsx from "clsx"; // Import clsx for conditional class names
 const ContractCard = ({ contract, onView }) => {
     const { theme } = useTheme();
 
-    const duration =
-        contract.deadline && contract.createdAt
-            ? Math.ceil((new Date(contract.deadline) - new Date(contract.createdAt)) / (1000 * 60 * 60 * 24))
-            : "N/A";
+    // const duration =
+    //     contract.deadline && contract.createdAt
+    //         ? Math.ceil((new Date(contract.deadline) - new Date(contract.createdAt)) / (1000 * 60 * 60 * 24))
+    //         : "N/A";
+
+    // const duration =
+    //     contract.workRequest?.deadline && contract.workRequest?.createdAt
+    //         ? Math.ceil((new Date(contract.workRequest.deadline) - new Date(contract.workRequest.createdAt)) / (1000 * 60 * 60 * 24))
+    //         : "N/A";
+
+
+    const calculateWorkRequestDuration = (contractData) => {
+        // Ensure contractData and its workRequest property exist and have the required fields
+        if (
+            !contractData ||
+            !contractData.workRequest ||
+            !contractData.workRequest.deadline ||
+            !contractData.workRequest.createdAt
+        ) {
+            return "N/A"; // Return "N/A" if any required data is missing
+        }
+
+        const start = new Date(contractData.workRequest.createdAt);
+        const end = new Date(contractData.workRequest.deadline);
+        const diffTime = Math.abs(end.getTime() - start.getTime());
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        return `${diffDays} days`;
+    };
+
 
     const statusColor = {
         OPEN: "bg-teal-100 text-teal-700 dark:bg-teal-900 dark:text-teal-200",
@@ -63,7 +88,7 @@ const ContractCard = ({ contract, onView }) => {
                 </p>
                 <p className="flex items-center gap-2">
                     <FaClock className="text-yellow-500" />
-                    <strong>Duration:</strong> {duration} days
+                    <strong>Duration:</strong> {calculateWorkRequestDuration(contract)}
                 </p>
                 {contract.acceptedBid && (
                     <p className="flex items-center gap-2">
