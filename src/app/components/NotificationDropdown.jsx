@@ -1,4 +1,4 @@
-//File: src/app/components/NotificationDropdown.jsx
+// File: src/app/components/NotificationDropdown.jsx
 'use client';
 
 import { useState, useEffect, useCallback, useRef } from 'react';
@@ -86,17 +86,24 @@ const NotificationDropdown = ({ currentUser, onUnreadCountChange }) => {
   /**
    * Handle click on notification
    */
-
   const handleNotificationClick = (notification) => {
     markAsRead([notification.id]);
   
-
     switch (notification.type) {
       case "SUBMISSION":
         router.push(`/my-work-request?requestId=${notification.relatedId}&submission=true`);
         break;
       case "MESSAGE":
-        router.push(`/my-work-request?requestId=${notification.relatedId}&message=true`);
+        // Prioritize the server-generated 'link' for MESSAGE notifications.
+        // This link will already be '/my-contracts' if it's an expert message related to a contract,
+        // or '/my-work-request' otherwise, as determined by the backend.
+        if (notification.link) {
+          router.push(notification.link);
+        } else {
+          // Fallback if 'link' is unexpectedly missing for a MESSAGE type
+          // (though it should always be present after the backend fixes).
+          router.push(`/my-work-request?requestId=${notification.relatedId}&message=true`);
+        }
         break;
       case "NEW_BID":
         router.push(`/my-work-request?requestId=${notification.relatedId}`);
@@ -105,13 +112,15 @@ const NotificationDropdown = ({ currentUser, onUnreadCountChange }) => {
         router.push(`/my-contracts?contractId=${notification.relatedId}`);
         break;
       default:
+        // This default case handles any other notification types, or acts as a final fallback
+        // if a link is expected but not provided in the specific cases above.
         if (notification.link) {
           router.push(notification.link);
         } else {
           toast.error("Failed to navigate. The link might be broken.");
         }
     }
-  
+    
     // Close the dropdown after clicking
     setIsOpen(false);
   };
@@ -127,6 +136,7 @@ const NotificationDropdown = ({ currentUser, onUnreadCountChange }) => {
       'SUBMISSION': '📝',
       'FEEDBACK': '💬',
       'MESSAGE': '✉️',
+      'INVITE': '💌', // Added for completeness if you use an INVITE type
     };
     return icons[type] || '🔔';
   };

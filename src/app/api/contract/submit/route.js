@@ -33,11 +33,14 @@ export async function POST(req) {
       where: {
         expertId: userId,
         workRequestId,
-        // status: "ACTIVE",
         status: "IN_PROGRESS" 
       },
       include: {
-        acceptedBid: true,
+        acceptedBid: { // Include acceptedBid
+          include: {
+            user: true, // Corrected: Include 'user' instead of 'expert'
+          },
+        },
       },
     });
 
@@ -86,6 +89,35 @@ export async function POST(req) {
             submittedAt: new Date(),
           },
         });
+
+    // 🆕 Create notification for the client
+    try {
+      const workRequest = await prisma.workRequest.findUnique({
+        where: { id: workRequestId },
+        select: { userId: true, title: true },
+      });
+
+      if (workRequest) {
+        await fetch(`${req.headers.get("x-forwarded-proto")}://${req.headers.get("host")}/api/notifications/create`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            userId: workRequest.userId, // Client's ID
+            type: "SUBMISSION",
+            // Corrected: Access name from acceptedBid.user.name
+            message: `Your expert "${contract.acceptedBid.user.name}" has submitted work for your request "${workRequest.title}".`, 
+            relatedId: workRequestId,
+            relatedTitle: workRequest.title,
+            relatedType: "WORK_REQUEST",
+          }),
+        });
+        console.log("✅ Submission notification created for client.");
+      } else {
+        console.warn("⚠️ Work request not found for notification, ID:", workRequestId);
+      }
+    } catch (notificationError) {
+      console.error("❌ Failed to create submission notification:", notificationError);
+    }
 
     return NextResponse.json({ message: "Submission saved", submission }, { status: 201 });
   } catch (error) {

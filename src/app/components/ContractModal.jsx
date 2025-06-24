@@ -4,7 +4,7 @@
 'use client';
 
 import { useTheme } from "@/context/ThemeProvider";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";
 import clsx from "clsx";
@@ -26,11 +26,30 @@ const getFileIcon = (fileURL) => {
 
 // Function to refresh notifications
 // This function is called when the user submits a new message or file
-const refreshNotifications = async () => {
+// const refreshNotifications = async () => {
+//   try {
+//     await fetch('/api/notifications/refresh', { method: 'POST' });
+//   } catch (error) {
+//     console.error("Failed to refresh notifications", error);
+//   }
+// };
+
+const refreshNotifications = async (userId) => { // Accept userId as a parameter
   try {
-    await fetch('/api/notifications/refresh', { method: 'POST' });
+    await fetch('/api/notifications/refresh', {
+      method: 'POST', // Assuming it's a POST request as per your logs
+      headers: {
+        'Content-Type': 'application/json',
+        'x-user-id': userId, // Pass the userId in the header
+      },
+      // You might need to send a body if your refresh endpoint expects one,
+      // but based on your route.js, it primarily checks the header.
+      body: JSON.stringify({}) // Send an empty JSON object if no body is needed
+    });
+    toast.success('Notifications refreshed!');
   } catch (error) {
-    console.error("Failed to refresh notifications", error);
+    console.error("Failed to refresh notifications:", error);
+    toast.error('Failed to refresh notifications.');
   }
 };
 
@@ -53,6 +72,8 @@ const ContractModal = ({ contract, currentUser, onClose, onCancelled }) => {
 
   const [contractData, setContractData] = useState(contract); // <== Replace all "contract" references with "contractData"
 
+  const modalRef = useRef(null);
+  const [modalSize, setModalSize] = useState({ width: 0, height: 0 });
 
   // State for message and file upload
   const [messages, setMessages] = useState([]);
@@ -60,6 +81,7 @@ const ContractModal = ({ contract, currentUser, onClose, onCancelled }) => {
   const [newFile, setNewFile] = useState(null);
   const [sending, setSending] = useState(false);
 
+  const messagesEndRef = useRef(null);
 
   
 
@@ -188,48 +210,6 @@ const ContractModal = ({ contract, currentUser, onClose, onCancelled }) => {
   };
 
 
-  // Fetch contract details
-  // const fetchContractDetails = async () => {
-  //   try {
-  //     const res = await fetch(`/api/work-request/${contract.id}`, {
-  //       headers: { 'x-user-id': currentUser.id },
-  //     });
-  //     if (!res.ok) throw new Error("Failed to fetch contract details");
-  //     const updated = await res.json();
-  //     setLocalSubmission({
-  //       message: updated.acceptedBid?.submission?.message || "",
-  //       fileURL: updated.acceptedBid?.submission?.fileURL || "",
-  //       fileName: updated.acceptedBid?.submission?.fileName || null,
-  //     });
-  //     // You can also update any other relevant contract state if needed
-  //   } catch (error) {
-  //     console.error("Failed to refresh contract:", error);
-  //   }
-  // };
-
-  // ✅ CORRECT: Fetch by contract.id from the correct contract endpoint
-  // const fetchContractDetails = async () => {
-  //   try {
-  //     const res = await fetch(`/api/contract/${contract.id}`, {
-  //       headers: { 'x-user-id': currentUser.id },
-  //     });
-  //     if (!res.ok) throw new Error("Failed to fetch contract details");
-
-  //     const updated = await res.json();
-
-  //     // 🔁 Update contract-level fields if needed here
-  //     setContractData(updated);
-
-  //     setLocalSubmission({
-  //       message: updated.acceptedBid?.submission?.message || "",
-  //       fileURL: updated.acceptedBid?.submission?.fileURL || "",
-  //       fileName: updated.acceptedBid?.submission?.fileName || null,
-  //     });
-  //   } catch (error) {
-  //     console.error("Failed to refresh contract:", error);
-  //   }
-  // };
-
   const fetchContractDetails = async () => {
     try {
       const res = await fetch(`/api/contract/${contract.id}`, {
@@ -286,6 +266,22 @@ const ContractModal = ({ contract, currentUser, onClose, onCancelled }) => {
     }
   };
 
+  useEffect(() => {
+        if (!modalRef.current) return;
+
+        const observer = new ResizeObserver((entries) => {
+            const modal = entries[0]?.target;
+            if (modal) {
+                const { offsetWidth, offsetHeight } = modal;
+                setModalSize({ width: offsetWidth, height: offsetHeight });
+            }
+        });
+
+        observer.observe(modalRef.current);
+
+        return () => observer.disconnect();
+    }, []);
+
   // Fetch messages for the contract
   const fetchMessages = async () => {
     try {
@@ -293,6 +289,9 @@ const ContractModal = ({ contract, currentUser, onClose, onCancelled }) => {
       if (!res.ok) throw new Error("Failed to fetch messages");
       const data = await res.json();
       setMessages(data.messages);
+      setTimeout(() => {
+                messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+            }, 100);
     } catch (error) {
       console.error("Fetch messages error:", error);
     }
@@ -377,6 +376,9 @@ const ContractModal = ({ contract, currentUser, onClose, onCancelled }) => {
           initial={{ scale: 0.95, y: 30 }}
           animate={{ scale: 1, y: 0 }}
           exit={{ scale: 0.95, y: 30 }}
+          transition={{ duration: 0.2 }}
+          ref={modalRef}
+          style={{ maxHeight: "90vh", overflowY: "auto" }} // Ensure modal is scrollable
         >
           {/* Header */}
           <button
@@ -563,6 +565,7 @@ const ContractModal = ({ contract, currentUser, onClose, onCancelled }) => {
                   </p>
                 </div>
               ))}
+              <div ref={messagesEndRef} />
             </div>
 
             <div className="mt-4 flex flex-col gap-2">
