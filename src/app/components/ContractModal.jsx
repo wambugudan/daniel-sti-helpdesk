@@ -24,15 +24,6 @@ const getFileIcon = (fileURL) => {
   }
 };
 
-// Function to refresh notifications
-// This function is called when the user submits a new message or file
-// const refreshNotifications = async () => {
-//   try {
-//     await fetch('/api/notifications/refresh', { method: 'POST' });
-//   } catch (error) {
-//     console.error("Failed to refresh notifications", error);
-//   }
-// };
 
 const refreshNotifications = async (userId) => { // Accept userId as a parameter
   try {
@@ -424,20 +415,27 @@ const ContractModal = ({ contract, currentUser, onClose, onCancelled }) => {
                 {/* Description */}
                 <div>
                   <h4 className="font-semibold mb-1">📄 Work Description</h4>
-                  <p className="whitespace-pre-line text-sm">{contract.description}</p>
+                  <p className="whitespace-pre-line text-sm">
+                    {/* {contract.description} */}
+                    {/* {contractData?.workRequest?.description || contractData?.description || "No description provided."} */}
+                    {contractData.workRequest?.description || contractData.description || "No description provided."}
+                  </p>
                 </div>
 
                 {/* Attachment */}
-                {contract.fileURL && (
+                {(contractData.workRequest?.fileURL) && (
                   <div className="flex items-center gap-2">
-                    {getFileIcon(contract.fileURL)}
+                    {/* {getFileIcon(contract.fileURL)} */}
+                    {getFileIcon(contractData.workRequest?.fileURL)}
                     <a
-                      href={contract.fileURL}
+                      // href={contract.fileURL}
+                      href={contractData.workRequest?.fileURL}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-blue-600 underline"
                     >
-                      {contract.fileName || "View File"}
+                      {/* {contract.fileName || "View File"} */}
+                      {contractData.workRequest?.fileName || "View File"}
                     </a>
                   </div>
                 )}

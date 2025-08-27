@@ -24,6 +24,8 @@ export async function GET(_, context) {
             budget: true,
             deadline: true,
             createdAt: true,
+            description: true, // Include description 
+            fileURL: true, // 📎 This line for the file URL
             user: {
               select: {
                 id: true,
