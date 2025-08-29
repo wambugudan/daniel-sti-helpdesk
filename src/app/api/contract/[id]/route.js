@@ -26,6 +26,7 @@ export async function GET(_, context) {
             createdAt: true,
             description: true, // Include description 
             fileURL: true, // 📎 This line for the file URL
+            status: true,
             user: {
               select: {
                 id: true,

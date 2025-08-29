@@ -44,13 +44,13 @@ const ContractCard = ({ contract, onView }) => {
         OPEN: "bg-teal-100 text-teal-700 dark:bg-teal-900 dark:text-teal-200",
         IN_PROGRESS: "bg-yellow-100 text-yellow-700 dark:bg-yellow-900 dark:text-yellow-200",
         CLOSED: "bg-red-100 text-red-700 dark:bg-red-900 dark:text-red-200",
-    }[contract.status];
+    }[contract.workRequest?.status || contract.status] || "bg-gray-100 text-gray-700 dark:bg-gray-900 dark:text-gray-200";
 
     return (
         <CardWrapper>
             {/* Status Badge */}
             <div className={`absolute top-4 right-4 text-xs font-semibold px-3 py-1 rounded-full ${statusColor}`}>
-                {contract.status.replace("_", " ").toLowerCase().replace(/\b\w/g, c => c.toUpperCase())}
+                {contract.workRequest?.status?.replace("_", " ").toLowerCase().replace(/\b\w/g, c => c.toUpperCase())}
             </div>
 
             {/* Title */}

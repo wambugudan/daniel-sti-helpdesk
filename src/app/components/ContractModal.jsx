@@ -392,7 +392,7 @@ const ContractModal = ({ contract, currentUser, onClose, onCancelled }) => {
             {/* <p><strong>Budget:</strong> ${contract.budget}</p> */}
             <p><strong>Budget:</strong> ${contractData.workRequest?.budget || contractData.budget}</p>
             <p><strong>Duration:</strong> {calculateWorkRequestDuration(contract.workRequest)}</p>
-            <p><strong>Status:</strong> {contract.status}</p>
+            <p><strong>Status:</strong> {contractData.workRequest?.status || contractData.status}</p>
             {console.log("🟢 ContractData:", contractData)}
 
           </div>
