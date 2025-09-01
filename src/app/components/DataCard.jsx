@@ -5,7 +5,7 @@
 import { useRouter } from "next/navigation";
 import Link from 'next/link'; // Import Link for user profile navigation
 import { useTheme } from "@/context/ThemeProvider";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import WorkRequestModal from "./WorkRequestModal"; // Keep if used elsewhere or remove if only in submissions/page.js
 import Badge from "./Badge";
 import { FaFilePdf, FaFileWord, FaFileImage, FaFileAlt } from "react-icons/fa";
@@ -35,12 +35,67 @@ const getFileIcon = (fileURL) => {
 
 // Ensure onView, currentUser, and showStatus props are correctly defined
 const DataCard = ({ workRequest, currentUser, onView, showStatus = false }) => {
+
+     // A check to prevent errors if workRequest is undefined
+    if (!workRequest) {
+        return null;
+    }
+
     const isOwner = currentUser?.id === workRequest.userId;
     const isCouncil = currentUser?.role === "COUNCIL";
-    // const isExpert = currentUser?.role === "EXPERT"; // This variable isn't currently used, can remove if not needed
-
+    
     const { theme } = useTheme();
     const router = useRouter();
+
+    // State to hold the signed URL and its loading status
+    const [signedFileUrl, setSignedFileUrl] = useState(null);
+    const [loadingFileUrl, setLoadingFileUrl] = useState(false);
+
+
+    // Function to fetch the signed URL from your API route
+    const fetchSignedUrl = async () => {
+        setLoadingFileUrl(true);
+        let filePath = '';
+        try {
+            // A more robust way to get the file path from the URL
+            const url = new URL(workRequest.fileURL);
+            filePath = url.pathname.split('/').pop();
+            console.log("Extracted file path:", filePath);
+        } catch (error) {
+            console.error("Error parsing URL:", error);
+            setLoadingFileUrl(false);
+            return;
+        }
+
+        try {
+            const response = await fetch('/api/get-signed-url', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ filePath, bucketName: 'jobs' }),
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to get signed URL');
+            }
+            
+            const data = await response.json();
+            setSignedFileUrl(data.signedUrl);
+        } catch (error) {
+            console.error("Error fetching signed URL:", error);
+            toast.error("Failed to load file link.");
+        } finally {
+            setLoadingFileUrl(false);
+        }
+    };
+
+
+    // Use a useEffect hook to fetch the URL when the component mounts
+    useEffect(() => {
+        if (workRequest.fileURL) {
+            fetchSignedUrl();
+        }
+    }, [workRequest.fileURL]);
+
 
     const handleDelete = async (id) => {
         if (!confirm("Are you sure you want to delete this work request?")) return;
@@ -126,7 +181,7 @@ const DataCard = ({ workRequest, currentUser, onView, showStatus = false }) => {
                 {workRequest.description ? workRequest.description.split(" ").slice(0, 50).join(" ") : "No description available"}...
             </p>
 
-            {workRequest.fileURL && (
+            {/* {workRequest.fileURL && (
                 <div className="flex items-center gap-2 mt-3">
                     {getFileIcon(workRequest.fileURL)}
                     <a
@@ -137,6 +192,27 @@ const DataCard = ({ workRequest, currentUser, onView, showStatus = false }) => {
                     >
                         View File
                     </a>
+                </div>
+            )} */}
+
+            {workRequest.fileURL && (
+                <div className="flex items-center gap-2 mt-3">
+                    {getFileIcon(workRequest.fileURL)}
+                    {/* Conditional rendering based on loading state and signed URL */}
+                    {loadingFileUrl ? (
+                        <span className="text-gray-500">Loading file...</span>
+                    ) : signedFileUrl ? (
+                        <a
+                            href={signedFileUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 underline"
+                        >
+                            View File
+                        </a>
+                    ) : (
+                        <span className="text-red-500">File link unavailable</span>
+                    )}
                 </div>
             )}
 
