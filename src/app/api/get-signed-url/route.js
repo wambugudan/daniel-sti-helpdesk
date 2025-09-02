@@ -13,6 +13,9 @@ const supabase = createClient(supabaseUrl, supabaseServiceRoleKey);
 export async function POST(request) {
   try {
     const { filePath, bucketName } = await request.json();
+    
+    // Log the received filePath and bucketName for debugging
+    console.log("Received request for filePath:", filePath, "in bucket:", bucketName);
 
     if (!filePath || !bucketName) {
       return NextResponse.json({ error: "File path and bucket name are required" }, { status: 400 });

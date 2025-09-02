@@ -53,21 +53,77 @@ const DataCard = ({ workRequest, currentUser, onView, showStatus = false }) => {
 
 
     // Function to fetch the signed URL from your API route
+    // const fetchSignedUrl = async () => {
+    //     setLoadingFileUrl(true);
+    //     let filePath = '';
+    //     try {
+    //         // A more robust way to get the file path from the URL
+    //         const url = new URL(workRequest.fileURL);
+    //         filePath = url.pathname.split('/').pop();
+    //         console.log("Extracted file path:", filePath);
+    //     } catch (error) {
+    //         console.error("Error parsing URL:", error);
+    //         setLoadingFileUrl(false);
+    //         return;
+    //     }
+
+    //     try {
+    //         const response = await fetch('/api/get-signed-url', {
+    //             method: 'POST',
+    //             headers: { 'Content-Type': 'application/json' },
+    //             body: JSON.stringify({ filePath, bucketName: 'jobs' }),
+    //         });
+
+    //         if (!response.ok) {
+    //             throw new Error('Failed to get signed URL');
+    //         }
+            
+    //         const data = await response.json();
+    //         setSignedFileUrl(data.signedUrl);
+    //     } catch (error) {
+    //         console.error("Error fetching signed URL:", error);
+    //         toast.error("Failed to load file link.");
+    //     } finally {
+    //         setLoadingFileUrl(false);
+    //     }
+    // };
+
+    // Function to fetch the signed URL from your API route
     const fetchSignedUrl = async () => {
         setLoadingFileUrl(true);
         let filePath = '';
         try {
-            // A more robust way to get the file path from the URL
-            const url = new URL(workRequest.fileURL);
-            filePath = url.pathname.split('/').pop();
-            console.log("Extracted file path:", filePath);
-        } catch (error) {
-            console.error("Error parsing URL:", error);
-            setLoadingFileUrl(false);
-            return;
-        }
+            if (typeof workRequest.fileURL === 'string' && workRequest.fileURL !== '') {
+                let extractedFilename = '';
+                
+                // First, try to extract the filename from a full Supabase URL
+                if (workRequest.fileURL.includes('/jobs/')) {
+                    const url = new URL(workRequest.fileURL);
+                    const pathSegments = url.pathname.split('/');
+                    extractedFilename = pathSegments[pathSegments.length - 1];
+                } else if (workRequest.fileURL.startsWith('/uploads/')) {
+                    // Fallback for relative paths
+                    extractedFilename = workRequest.fileURL.split('/').pop();
+                } else {
+                    console.error("Unknown URL format:", workRequest.fileURL);
+                    setLoadingFileUrl(false);
+                    return;
+                }
 
-        try {
+                // Decode the filename to ensure it's in its raw, unencoded form
+                if (extractedFilename) {
+                    filePath = decodeURIComponent(extractedFilename);
+                }
+            }
+            
+            if (!filePath) {
+                console.error("Failed to extract file path from URL:", workRequest.fileURL);
+                setLoadingFileUrl(false);
+                return;
+            }
+
+            console.log("Extracted and decoded file path (sent to server):", filePath);
+
             const response = await fetch('/api/get-signed-url', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -75,19 +131,19 @@ const DataCard = ({ workRequest, currentUser, onView, showStatus = false }) => {
             });
 
             if (!response.ok) {
-                throw new Error('Failed to get signed URL');
+                const errorData = await response.json();
+                throw new Error(errorData.error || 'Failed to get signed URL');
             }
             
             const data = await response.json();
             setSignedFileUrl(data.signedUrl);
         } catch (error) {
             console.error("Error fetching signed URL:", error);
-            toast.error("Failed to load file link.");
+            toast.error("Failed to load file link: " + error.message);
         } finally {
             setLoadingFileUrl(false);
         }
     };
-
 
     // Use a useEffect hook to fetch the URL when the component mounts
     useEffect(() => {
