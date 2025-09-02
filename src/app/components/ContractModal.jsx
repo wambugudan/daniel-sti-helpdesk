@@ -60,8 +60,10 @@ const ContractModal = ({ contract, currentUser, onClose, onCancelled }) => {
   );
   
   const [isDetailsExpanded, setIsDetailsExpanded] = useState(false);
-
   const [contractData, setContractData] = useState(contract); // <== Replace all "contract" references with "contractData"
+
+  // New state variable to hold the signed URL for the work request file
+  const [workRequestFileUrl, setWorkRequestFileUrl] = useState(null);
 
   const modalRef = useRef(null);
   const [modalSize, setModalSize] = useState({ width: 0, height: 0 });
@@ -74,13 +76,10 @@ const ContractModal = ({ contract, currentUser, onClose, onCancelled }) => {
 
   const messagesEndRef = useRef(null);
 
-  
-
   const isOwner = currentUser?.id === contract?.acceptedBid?.userId;
   // const hasSubmission = !!contract?.acceptedBid?.Submission?.Message || !!contract?.acceptedBid?.Submission?.FileURL;
   const hasSubmission = !!contract?.acceptedBid?.submission?.Message || !!contract?.acceptedBid?.Submission?.FileURL;
   
-
   const [replyDrafts, setReplyDrafts] = useState({});
 
 
@@ -105,12 +104,6 @@ const ContractModal = ({ contract, currentUser, onClose, onCancelled }) => {
     fileName: submission?.fileName || null,
   });
 
-
-  // const duration =
-  //   contract.deadline && contract.createdAt
-  //     ? Math.ceil((new Date(contract.deadline) - new Date(contract.createdAt)) / (1000 * 60 * 60 * 24))
-  //     : "N/A";
-
   
   const calculateWorkRequestDuration = (workRequest) => {
     // Check for existence of workRequest and its properties
@@ -122,6 +115,38 @@ const ContractModal = ({ contract, currentUser, onClose, onCancelled }) => {
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
     return `${diffDays} days`;
   };
+
+  const fetchWorkRequestFileUrl = async () => {
+    const filePath = contractData.workRequest?.fileName;
+    if (!filePath) {
+      setWorkRequestFileUrl(null);
+      return;
+    }
+    try {
+      const response = await fetch('/api/get-signed-url', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          filePath: filePath,
+          bucketName: 'jobs',
+        }),
+      });
+      const data = await response.json();
+      if (response.ok) {
+        setWorkRequestFileUrl(data.signedUrl);
+      } else {
+        console.error('Failed to get signed URL for work request file:', data.error);
+        setWorkRequestFileUrl(null);
+      }
+    } catch (error) {
+      console.error('Error fetching work request signed URL:', error);
+      setWorkRequestFileUrl(null);
+    }
+  };
+
+  useEffect(() => {
+    fetchWorkRequestFileUrl();
+  }, [contractData]);
   
 
   const handleSubmit = async () => {
@@ -142,9 +167,6 @@ const ContractModal = ({ contract, currentUser, onClose, onCancelled }) => {
       const formData = new FormData();
       formData.append("userId", currentUser.id);   
       
-
-      // formData.append("workRequestId", contractData.workRequestId || contractData.id); // Use contractData to access workRequestId
-      // formData.append("workRequestId", contractData.workRequestId || contractData.workRequest?.id);
       formData.append("workRequestId", contractData.acceptedBid?.workRequestId || contractData.id);
       formData.append("message", submissionMessage);
       if (file) formData.append("file", file);
@@ -294,44 +316,111 @@ const ContractModal = ({ contract, currentUser, onClose, onCancelled }) => {
     }
   }, [contract.acceptedBid?.submission?.id]);
   
+  // const sendMessage = async () => {
+
+  //   if (!newMessage.trim() && !newFile) return toast.error("Cannot send empty message");
+
+  //     setSending(true);
+  //     try {
+  //       const formData = new FormData();
+  //       formData.append("submissionId", contract.acceptedBid?.submission?.id);
+  //       formData.append("senderId", currentUser.id);
+  //       formData.append("senderRole", currentUser.role);
+  //       formData.append("content", newMessage.trim());
+  //       if (newFile) formData.append("file", newFile);
+
+  //       const res = await fetch("/api/submission/message/send", {
+  //         method: "POST",
+  //         body: formData,
+  //       });
+
+  //       console.log([...formData.entries()])
+
+  //       if (!res.ok) throw new Error("Failed to send message");
+
+
+  //       toast.success("Message sent!");
+  //       setNewMessage("");
+  //       setNewFile(null);
+
+  //       await fetchMessages(); // Refresh chat
+
+  //     } catch (error) {
+  //       console.error(error);
+  //       toast.error("Failed to send");
+  //     } finally {
+  //       setSending(false);
+  //     }
+  // }
+
+  // Handle contract cancellation
+  
   const sendMessage = async () => {
-    if (!newMessage.trim() && !newFile) return toast.error("Cannot send empty message");
+    if (newMessage.trim() === '' && !newFile) {
+      toast.error("Please enter a message or select a file.");
+      return;
+    }
 
-      setSending(true);
-      try {
+    setSending(true);
+
+    let fileURL = null;
+    let fileName = null;
+
+    try {
+      // Step 1: Upload the file if one is selected
+      if (newFile) {
         const formData = new FormData();
-        formData.append("submissionId", contract.acceptedBid?.submission?.id);
-        formData.append("senderId", currentUser.id);
-        formData.append("senderRole", currentUser.role);
-        formData.append("content", newMessage.trim());
-        if (newFile) formData.append("file", newFile);
+        formData.append("file", newFile);
+        // Specify the 'submissions' bucket
+        formData.append("bucket", "submissions");
 
-        const res = await fetch("/api/submission/message/send", {
+        const uploadResponse = await fetch("/api/upload", {
           method: "POST",
           body: formData,
         });
 
-        console.log([...formData.entries()])
-
-        if (!res.ok) throw new Error("Failed to send message");
-
-
-        toast.success("Message sent!");
-        setNewMessage("");
-        setNewFile(null);
-
-        await fetchMessages(); // Refresh chat
-
-      } catch (error) {
-        console.error(error);
-        toast.error("Failed to send");
-      } finally {
-        setSending(false);
+        if (!uploadResponse.ok) {
+          throw new Error("File upload failed.");
+        }
+        
+        const uploadData = await uploadResponse.json();
+        fileURL = uploadData.fileURL;
+        fileName = uploadData.fileName;
       }
-    }
 
-  // Handle contract cancellation
-  
+      // Step 2: Save the message and file URL to the database
+      const messageResponse = await fetch("/api/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          content: newMessage,
+          senderId: currentUser.id,
+          submissionId: contract.submissionId,
+          fileURL, // Add the file URL to the message payload
+          fileName, // Add the filename to the message payload
+        }),
+      });
+
+      if (!messageResponse.ok) {
+        throw new Error("Failed to send message.");
+      }
+
+      toast.success("Message sent successfully!");
+      setNewMessage("");
+      setNewFile(null);
+
+      // Refresh data in the UI
+      refreshNotifications(currentUser.id);
+      fetchMessages();
+
+    } catch (error) {
+      console.error("Error sending message:", error);
+      toast.error("Failed to send message: " + error.message);
+    } finally {
+      setSending(false);
+    }
+  };
+
   const handleCancelContract = async () => {
     if (!confirm("Cancel this contract?")) return;
     try {

@@ -27,10 +27,12 @@ const getFileIcon = (fileURL) => {
     }
 };
 
+
 const WorkRequestModal = ({ workRequest: initialWorkRequest, currentUser, onClose, onDeleted }) => {
     const router = useRouter();
     const { theme } = useTheme();
 
+    const [submissionFileUrl, setSubmissionFileUrl] = useState(null); // New state for signed URL
     const [workRequest, setWorkRequest] = useState(initialWorkRequest);
     const [bidAmount, setBidAmount] = useState(""); // Kept for consistency, though BidForm might abstract this
     const [bidMessage, setBidMessage] = useState(""); // Kept for consistency
@@ -175,6 +177,39 @@ const WorkRequestModal = ({ workRequest: initialWorkRequest, currentUser, onClos
             document.removeEventListener("keydown", handleEscape);
         };
     }, [currentUser?.id, initialWorkRequest?.id, workRequest?.id, isCouncil, isExpert]); // Added dependencies for clarity
+
+    // Function to fetch the signed URL for the submission file
+    const fetchSubmissionFileUrl = async () => {
+        if (!workRequest.acceptedBid?.submission?.fileURL) {
+            return;
+        }
+
+        try {
+            const response = await fetch('/api/get-signed-url', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    filePath: workRequest.acceptedBid.submission.fileName,
+                    bucketName: 'submissions', // Specify the new bucket
+                }),
+            });
+
+            if (!response.ok) {
+                throw new Error('Failed to get signed URL for submission file.');
+            }
+
+            const data = await response.json();
+            setSubmissionFileUrl(data.signedUrl);
+        } catch (error) {
+            console.error("Error fetching submission file URL:", error);
+            toast.error("Failed to load submission file link.");
+        }
+    };
+
+    // Fetch submission file URL when workRequest changes
+    useEffect(() => {
+        fetchSubmissionFileUrl();
+    }, [workRequest]);
 
     const handleBidSubmit = async () => {
         if (!bidAmount) return toast.error("Bid amount is required"); // Changed alert to toast
@@ -619,7 +654,7 @@ const WorkRequestModal = ({ workRequest: initialWorkRequest, currentUser, onClos
                                             </span>
                                         </p>
 
-                                        {workRequest.acceptedBid.submission?.fileURL && (
+                                        {/* {workRequest.acceptedBid.submission?.fileURL && (
                                             <p className="mb-2">
                                                 <strong>File:</strong>{" "}
                                                 <a
@@ -631,6 +666,24 @@ const WorkRequestModal = ({ workRequest: initialWorkRequest, currentUser, onClos
                                                     {workRequest.acceptedBid.submission?.fileName || "View Submitted File"}
                                                 </a>
                                             </p>
+                                        )} */}
+
+                                        {/* Submission file display */}
+                                        {workRequest.acceptedBid?.submission?.fileURL && (
+                                            <div className="mt-4">
+                                            <h4 className="font-semibold text-sm">Expert Submission:</h4>
+                                            <a
+                                                href={submissionFileUrl}
+                                                target="_blank"
+                                                rel="noopener noreferrer"
+                                                className="flex items-center gap-2 p-2 border rounded-md hover:bg-gray-100 transition-colors"
+                                            >
+                                                {getFileIcon(workRequest.acceptedBid.submission.fileURL)}
+                                                <span className="truncate text-sm">
+                                                {workRequest.acceptedBid.submission.fileName || "View Submission"}
+                                                </span>
+                                            </a>
+                                            </div>
                                         )}
 
                                         {workRequest.acceptedBid.submission?.submittedAt && (

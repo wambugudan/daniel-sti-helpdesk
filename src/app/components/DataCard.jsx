@@ -116,78 +116,7 @@ const DataCard = ({ workRequest, currentUser, onView, showStatus = false }) => {
         }
     }, [workRequest.fileURL]);
 
-
-    // const handleDelete = async (id) => {
-    //     if (!confirm("Are you sure you want to delete this work request?")) return;
-    //     try {
-    //         const response = await fetch(`/api/work-request/${id}`, { method: "DELETE" });
-    //         if (!response.ok) throw new Error("Failed to delete request");
-    //         toast.success("Work request deleted!");
-    //         // Optionally, you might want to call a prop like onDeleted(id) here
-    //         // to update the parent component's state (e.g., remove the card)
-    //     } catch (error) {
-    //         toast.error("Failed to delete request!");
-    //     }
-    // };
-
-
-    // Add this function to your DataCard.jsx file
     
-    // const handleDelete = async (id) => {
-    //     if (!confirm("Are you sure you want to delete this work request?")) return;
-        
-    //     try {
-    //         // Fetch the work request to get the fileURL
-    //         const workRequestResponse = await fetch(`/api/work-request/${id}`);
-    //         if (!workRequestResponse.ok) throw new Error("Failed to fetch work request details.");
-
-    //         const workRequest = await workRequestResponse.json();
-
-    //         // If a fileURL exists, delete the file from Supabase storage
-    //         if (workRequest.fileURL) {
-    //             let filePath = '';
-    //             // Use the same robust logic from fetchSignedUrl to get the filename
-    //             if (workRequest.fileURL.includes('/jobs/')) {
-    //                 const url = new URL(workRequest.fileURL);
-    //                 const pathSegments = url.pathname.split('/');
-    //                 filePath = pathSegments[pathSegments.length - 1];
-    //             } else if (workRequest.fileURL.startsWith('/uploads/')) {
-    //                 filePath = workRequest.fileURL.split('/').pop();
-    //             }
-
-    //             if (filePath) {
-    //                 // Call the new API endpoint to delete the file
-    //                 const fileDeleteResponse = await fetch('/api/delete-file', {
-    //                     method: "POST",
-    //                     headers: { "Content-Type": "application/json" },
-    //                     body: JSON.stringify({ filePath, bucketName: "jobs" }),
-    //                 });
-
-    //                 if (!fileDeleteResponse.ok) {
-    //                     // Log the error but proceed with database deletion
-    //                     console.error("Failed to delete file from Supabase storage.");
-    //                 }
-    //             }
-    //         }
-
-    //         // Now, delete the work request from the database
-    //         const response = await fetch(`/api/work-request/${id}`, { method: "DELETE" });
-    //         if (!response.ok) throw new Error("Failed to delete request");
-            
-    //         toast.success("Work request and associated file deleted!");
-
-    //         // Update the parent component state
-    //         // This assumes you have a way to update the state to remove the deleted item from the list
-    //         // You might need to refresh the page or update the state in a parent component
-    //         window.location.reload(); 
-            
-    //     } catch (error) {
-    //         console.error("Deletion error:", error);
-    //         toast.error("Failed to delete request and file!");
-    //     }
-    // };
-
-
     const handleDelete = async (id) => {
         if (!confirm("Are you sure you want to delete this work request?")) return;
         
