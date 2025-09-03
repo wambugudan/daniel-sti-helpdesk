@@ -9,6 +9,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";
 import clsx from "clsx";
 import { FaFilePdf, FaFileWord, FaFileImage, FaFileAlt } from "react-icons/fa";
+import { useSignedUrl } from "@/hooks/useSignedUrl";
+
 
 const getFileIcon = (fileURL) => {
   if (!fileURL) return <FaFileAlt className="text-gray-500 text-2xl" />;
@@ -63,7 +65,7 @@ const ContractModal = ({ contract, currentUser, onClose, onCancelled }) => {
   const [contractData, setContractData] = useState(contract); // <== Replace all "contract" references with "contractData"
 
   // New state variable to hold the signed URL for the work request file
-  const [workRequestFileUrl, setWorkRequestFileUrl] = useState(null);
+  // const [workRequestFileUrl, setWorkRequestFileUrl] = useState(null);
 
   const modalRef = useRef(null);
   const [modalSize, setModalSize] = useState({ width: 0, height: 0 });
@@ -116,38 +118,42 @@ const ContractModal = ({ contract, currentUser, onClose, onCancelled }) => {
     return `${diffDays} days`;
   };
 
-  const fetchWorkRequestFileUrl = async () => {
-    const filePath = contractData.workRequest?.fileName;
-    if (!filePath) {
-      setWorkRequestFileUrl(null);
-      return;
-    }
-    try {
-      const response = await fetch('/api/get-signed-url', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          filePath: filePath,
-          bucketName: 'jobs',
-        }),
-      });
-      const data = await response.json();
-      if (response.ok) {
-        setWorkRequestFileUrl(data.signedUrl);
-      } else {
-        console.error('Failed to get signed URL for work request file:', data.error);
-        setWorkRequestFileUrl(null);
-      }
-    } catch (error) {
-      console.error('Error fetching work request signed URL:', error);
-      setWorkRequestFileUrl(null);
-    }
-  };
+  // const fetchWorkRequestFileUrl = async () => {
+  //   const filePath = contractData.workRequest?.fileName;
+  //   if (!filePath) {
+  //     setWorkRequestFileUrl(null);
+  //     return;
+  //   }
+  //   try {
+  //     const response = await fetch('/api/get-signed-url', {
+  //       method: 'POST',
+  //       headers: { 'Content-Type': 'application/json' },
+  //       body: JSON.stringify({
+  //         filePath: filePath,
+  //         bucketName: 'jobs',
+  //       }),
+  //     });
+  //     const data = await response.json();
+  //     if (response.ok) {
+  //       setWorkRequestFileUrl(data.signedUrl);
+  //     } else {
+  //       console.error('Failed to get signed URL for work request file:', data.error);
+  //       setWorkRequestFileUrl(null);
+  //     }
+  //   } catch (error) {
+  //     console.error('Error fetching work request signed URL:', error);
+  //     setWorkRequestFileUrl(null);
+  //   }
+  // };
 
-  useEffect(() => {
-    fetchWorkRequestFileUrl();
-  }, [contractData]);
+  // useEffect(() => {
+  //   fetchWorkRequestFileUrl();
+  // }, [contractData]);
   
+  const { signedFileUrl: workRequestFileUrl, loadingFileUrl } = useSignedUrl(
+    contractData?.workRequest?.fileURL, "jobs"
+  );
+
 
   const handleSubmit = async () => {
     if (!submissionMessage && !file) {
@@ -513,19 +519,36 @@ const ContractModal = ({ contract, currentUser, onClose, onCancelled }) => {
 
                 {/* Attachment */}
                 {(contractData.workRequest?.fileURL) && (
+                  // <div className="flex items-center gap-2">
+                  //   {/* {getFileIcon(contract.fileURL)} */}
+                  //   {getFileIcon(contractData.workRequest?.fileURL)}
+                  //   <a
+                  //     // href={contract.fileURL}
+                  //     href={contractData.workRequest?.fileURL}
+                  //     target="_blank"
+                  //     rel="noopener noreferrer"
+                  //     className="text-blue-600 underline"
+                  //   >
+                  //     {/* {contract.fileName || "View File"} */}
+                  //     {contractData.workRequest?.fileName || "View File"}
+                  //   </a>
+                  // </div>
                   <div className="flex items-center gap-2">
-                    {/* {getFileIcon(contract.fileURL)} */}
                     {getFileIcon(contractData.workRequest?.fileURL)}
-                    <a
-                      // href={contract.fileURL}
-                      href={contractData.workRequest?.fileURL}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-blue-600 underline"
-                    >
-                      {/* {contract.fileName || "View File"} */}
-                      {contractData.workRequest?.fileName || "View File"}
-                    </a>
+                    {loadingFileUrl ? (
+                      <span className="text-gray-500 text-sm">Loading file...</span>
+                    ) : workRequestFileUrl ? (
+                      <a
+                        href={workRequestFileUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-blue-600 underline"
+                      >
+                        {contractData.workRequest?.fileName || "View File"}
+                      </a>
+                    ) : (
+                      <span className="text-red-500 text-sm">File unavailable</span>
+                    )}
                   </div>
                 )}
 
@@ -704,3 +727,482 @@ const ContractModal = ({ contract, currentUser, onClose, onCancelled }) => {
 };
 
 export default ContractModal;
+
+// ==================================================
+
+// "use client";
+
+// import { useEffect, useState } from "react";
+// import { motion, AnimatePresence } from "framer-motion";
+// import { X } from "lucide-react";
+// import { useModal } from "@/context/ModalContext";
+// import {useSignedUrl} from "@/hooks/useSignedUrl";
+
+// export default function ContractModal() {
+//   const { modalContract, closeModal } = useModal();
+//   const [contract, setContract] = useState(null);
+
+//   // 🔹 Signed URL for work request file
+//   const workFileUrl = useSignedUrl(contract?.workRequest?.fileURL);
+
+//   // 🔹 Signed URL for first submission file (latest submission)
+//   const submissionFileUrl = useSignedUrl(
+//     contract?.submissions?.[0]?.fileURL
+//   );
+
+//   useEffect(() => {
+//     if (modalContract) {
+//       console.log("📄 ModalContract received:", modalContract);
+//       setContract(modalContract);
+//     }
+//   }, [modalContract]);
+
+//   if (!contract) return null;
+
+//   // ✅ Helper for signed URL fallback for message attachments
+//   const MessageAttachment = ({ fileURL }) => {
+//     const signedUrl = useSignedUrl(fileURL);
+//     const finalUrl = signedUrl || fileURL;
+
+//     useEffect(() => {
+//       console.log("📎 Resolving message attachment URL:", {
+//         original: fileURL,
+//         signed: signedUrl,
+//       });
+//     }, [fileURL, signedUrl]);
+
+//     if (!fileURL) return null;
+
+//     return (
+//       <a
+//         href={finalUrl}
+//         target="_blank"
+//         rel="noopener noreferrer"
+//         className="text-blue-500 underline ml-2"
+//       >
+//         View File
+//       </a>
+//     );
+//   };
+
+//   return (
+//     <AnimatePresence>
+//       {contract && (
+//         <motion.div
+//           className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50"
+//           initial={{ opacity: 0 }}
+//           animate={{ opacity: 1 }}
+//           exit={{ opacity: 0 }}
+//         >
+//           <motion.div
+//             className="bg-white rounded-lg shadow-lg w-11/12 md:w-2/3 lg:w-1/2 p-6 relative"
+//             initial={{ scale: 0.9, opacity: 0 }}
+//             animate={{ scale: 1, opacity: 1 }}
+//             exit={{ scale: 0.9, opacity: 0 }}
+//           >
+//             {/* Close Button */}
+//             <button
+//               onClick={closeModal}
+//               className="absolute top-4 right-4 text-gray-500 hover:text-gray-700"
+//             >
+//               <X size={24} />
+//             </button>
+
+//             {/* Contract Title */}
+//             <h2 className="text-2xl font-bold mb-4">
+//               {contract.workRequest?.title}
+//             </h2>
+
+//             {/* Basic Info */}
+//             <div className="mb-4 text-sm text-gray-700 space-y-1">
+//               <p>
+//                 <span className="font-semibold">Category:</span>{" "}
+//                 {contract.workRequest?.category}
+//               </p>
+//               <p>
+//                 <span className="font-semibold">Council:</span>{" "}
+//                 {contract.council?.name}
+//               </p>
+//               <p>
+//                 <span className="font-semibold">Expert:</span>{" "}
+//                 {contract.expert?.name}
+//               </p>
+//               <p>
+//                 <span className="font-semibold">Budget:</span> $
+//                 {contract.workRequest?.budget}
+//               </p>
+//               <p>
+//                 <span className="font-semibold">Duration:</span>{" "}
+//                 {contract.workRequest?.duration} days
+//               </p>
+//               <p>
+//                 <span className="font-semibold">Status:</span>{" "}
+//                 {contract.status}
+//               </p>
+//             </div>
+
+//             {/* Work Request File */}
+//             {contract.workRequest?.fileURL && (
+//               <div className="mb-4">
+//                 <p className="font-semibold">Work Request File:</p>
+//                 <a
+//                   href={workFileUrl || contract.workRequest.fileURL}
+//                   target="_blank"
+//                   rel="noopener noreferrer"
+//                   className="text-blue-500 underline"
+//                 >
+//                   View File
+//                 </a>
+//               </div>
+//             )}
+
+//             {/* Submission File */}
+//             {contract.submissions?.length > 0 && (
+//               <div className="mb-4">
+//                 <p className="font-semibold">Latest Submission:</p>
+//                 <a
+//                   href={submissionFileUrl || contract.submissions[0].fileURL}
+//                   target="_blank"
+//                   rel="noopener noreferrer"
+//                   className="text-blue-500 underline"
+//                 >
+//                   View File
+//                 </a>
+//               </div>
+//             )}
+
+//             {/* Messages */}
+//             {contract.messages?.length > 0 && (
+//               <div className="mt-6">
+//                 <h3 className="text-lg font-semibold mb-2">Messages</h3>
+//                 <div className="space-y-2 max-h-60 overflow-y-auto border rounded p-2">
+//                   {contract.messages.map((msg) => (
+//                     <div
+//                       key={msg.id}
+//                       className="p-2 border-b last:border-b-0 text-sm"
+//                     >
+//                       <p className="font-semibold">{msg.sender?.name}:</p>
+//                       <p>{msg.content}</p>
+//                       {msg.fileURL && (
+//                         <MessageAttachment fileURL={msg.fileURL} />
+//                       )}
+//                     </div>
+//                   ))}
+//                 </div>
+//               </div>
+//             )}
+//           </motion.div>
+//         </motion.div>
+//       )}
+//     </AnimatePresence>
+//   );
+// }
+
+// =====================================================
+
+
+
+
+
+
+
+// Description: A modal component for displaying contract details and allowing the user to submit work or cancel the contract.
+
+// 'use client';
+
+// import { useTheme } from "@/context/ThemeProvider";
+// import { useState, useEffect, useRef } from "react";
+// import { motion, AnimatePresence } from "framer-motion";
+// import toast from "react-hot-toast";
+// import clsx from "clsx";
+// import { FaFilePdf, FaFileWord, FaFileImage, FaFileAlt } from "react-icons/fa";
+
+// import { useSignedUrl } from "@/hooks/useSignedUrl"; // ✅ NEW
+
+// const ContractModal = ({ isOpen, onClose, contractData, onSubmitWork, onCancelContract }) => {
+//   const { theme } = useTheme();
+//   const modalRef = useRef();
+
+//   // State for work submission
+//   const [workDescription, setWorkDescription] = useState("");
+//   const [workFile, setWorkFile] = useState(null);
+
+//   // Hook for fetching signed URL for work request file
+//   const { signedFileUrl: workRequestFileUrl, loadingFileUrl: loadingWorkRequestFile } =
+//     useSignedUrl(contractData?.workRequest?.fileURL, "jobs");
+
+//   // Reset form when modal closes
+//   useEffect(() => {
+//     if (!isOpen) {
+//       setWorkDescription("");
+//       setWorkFile(null);
+//     }
+//   }, [isOpen]);
+
+//   // Close modal if click outside content
+//   useEffect(() => {
+//     const handleClickOutside = (e) => {
+//       if (modalRef.current && !modalRef.current.contains(e.target)) {
+//         onClose();
+//       }
+//     };
+//     if (isOpen) document.addEventListener("mousedown", handleClickOutside);
+//     return () => document.removeEventListener("mousedown", handleClickOutside);
+//   }, [isOpen, onClose]);
+
+//   const handleFileChange = (e) => {
+//     setWorkFile(e.target.files[0]);
+//   };
+
+//   const handleSubmit = async () => {
+//     if (!workDescription) {
+//       toast.error("Please provide a description of your work.");
+//       return;
+//     }
+//     onSubmitWork(workDescription, workFile);
+//     onClose();
+//   };
+
+//   const getFileIcon = (fileName) => {
+//     if (!fileName) return <FaFileAlt className="text-gray-500" />;
+//     const ext = fileName.split(".").pop().toLowerCase();
+//     if (ext === "pdf") return <FaFilePdf className="text-red-500" />;
+//     if (ext === "doc" || ext === "docx") return <FaFileWord className="text-blue-500" />;
+//     if (["png", "jpg", "jpeg", "gif"].includes(ext)) return <FaFileImage className="text-green-500" />;
+//     return <FaFileAlt className="text-gray-500" />;
+//   };
+
+//   if (!isOpen) return null;
+
+//   return (
+//     <AnimatePresence>
+//       <motion.div
+//         className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50"
+//         initial={{ opacity: 0 }}
+//         animate={{ opacity: 1 }}
+//         exit={{ opacity: 0 }}
+//       >
+//         <motion.div
+//           ref={modalRef}
+//           className={clsx(
+//             "w-full max-w-2xl p-6 rounded-xl shadow-lg overflow-y-auto max-h-[90vh]",
+//             theme === "dark" ? "bg-gray-800 text-white" : "bg-white text-gray-800"
+//           )}
+//           initial={{ y: "-100vh" }}
+//           animate={{ y: 0 }}
+//           exit={{ y: "-100vh" }}
+//         >
+//           <h2 className="text-xl font-semibold mb-4">Contract Details</h2>
+
+//           {/* Work Request Details */}
+//           <div className="mb-4">
+//             <h3 className="font-semibold text-lg">📌 Work Request</h3>
+//             <p><strong>Title:</strong> {contractData.workRequest?.title}</p>
+//             <p><strong>Description:</strong> {contractData.workRequest?.description}</p>
+//             {contractData.workRequest?.fileURL && (
+//               <div className="flex items-center gap-2 mt-2">
+//                 {getFileIcon(contractData.workRequest?.fileURL)}
+//                 {loadingWorkRequestFile ? (
+//                   <span className="text-gray-500">Loading file...</span>
+//                 ) : workRequestFileUrl ? (
+//                   <a
+//                     href={workRequestFileUrl}
+//                     target="_blank"
+//                     rel="noopener noreferrer"
+//                     className="text-blue-600 underline"
+//                   >
+//                     {contractData.workRequest?.fileName || "View File"}
+//                   </a>
+//                 ) : (
+//                   <span className="text-red-500">File unavailable</span>
+//                 )}
+//               </div>
+//             )}
+//           </div>
+
+//           {/* Bidder Info */}
+//           <div className="mb-4">
+//             <h3 className="font-semibold text-lg">👤 Bidder</h3>
+//             <p><strong>Name:</strong> {contractData.bid?.bidder?.name}</p>
+//             <p><strong>Email:</strong> {contractData.bid?.bidder?.email}</p>
+//             <p><strong>Bid Amount:</strong> ${contractData.bid?.bidAmount}</p>
+//           </div>
+
+//           {/* Contract Actions */}
+//           <div className="mb-4">
+//             <h3 className="font-semibold text-lg">⚡ Actions</h3>
+//             <textarea
+//               placeholder="Describe the work you’ve completed..."
+//               className="w-full p-2 border rounded-md mb-2 text-black"
+//               value={workDescription}
+//               onChange={(e) => setWorkDescription(e.target.value)}
+//             />
+//             <input
+//               type="file"
+//               onChange={handleFileChange}
+//               className="mb-2"
+//             />
+//             <div className="flex gap-3">
+//               <button
+//                 className="bg-blue-600 text-white px-4 py-2 rounded-md"
+//                 onClick={handleSubmit}
+//               >
+//                 Submit Work
+//               </button>
+//               <button
+//                 className="bg-red-600 text-white px-4 py-2 rounded-md"
+//                 onClick={onCancelContract}
+//               >
+//                 Cancel Contract
+//               </button>
+//               <button
+//                 className="bg-gray-500 text-white px-4 py-2 rounded-md"
+//                 onClick={onClose}
+//               >
+//                 Close
+//               </button>
+//             </div>
+//           </div>
+
+//           {/* Submission (if exists) */}
+//           {contractData.submission && (
+//             <div className="mb-4">
+//               <h3 className="font-semibold text-lg">📬 Work Submission</h3>
+//               <p><strong>Description:</strong> {contractData.submission.description}</p>
+//               {contractData.submission.fileURL && (
+//                 <div className="flex items-center gap-2 mt-2">
+//                   {getFileIcon(contractData.submission.fileURL)}
+//                   <a
+//                     href={contractData.submission.fileURL}
+//                     target="_blank"
+//                     rel="noopener noreferrer"
+//                     className="text-blue-600 underline"
+//                   >
+//                     {contractData.submission.fileName || "View Submission"}
+//                   </a>
+//                 </div>
+//               )}
+//             </div>
+//           )}
+//         </motion.div>
+//       </motion.div>
+//     </AnimatePresence>
+//   );
+// };
+
+// export default ContractModal;
+
+
+// File: src/app/components/ContractModal.jsx
+// "use client";
+
+// import { useEffect } from "react";
+// import { motion, AnimatePresence } from "framer-motion";
+
+// export default function ContractModal({ contract, onClose }) {
+//   useEffect(() => {
+//     console.log("📦 ContractModal props:", { contract });
+//   }, [contract]);
+
+//   if (!contract) return null; // Don’t render if no contract
+
+//   const {
+//     id,
+//     status,
+//     finalAmount,
+//     startDate,
+//     endDate,
+//     workRequest,
+//     council,
+//     expert,
+//   } = contract;
+
+//   return (
+//     <AnimatePresence>
+//       <motion.div
+//         className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+//         initial={{ opacity: 0 }}
+//         animate={{ opacity: 1 }}
+//         exit={{ opacity: 0 }}
+//       >
+//         <motion.div
+//           className="bg-white rounded-2xl shadow-xl max-w-2xl w-full p-6 overflow-y-auto max-h-[90vh]"
+//           initial={{ scale: 0.9, opacity: 0 }}
+//           animate={{ scale: 1, opacity: 1 }}
+//           exit={{ scale: 0.9, opacity: 0 }}
+//         >
+//           <div className="flex justify-between items-center border-b pb-3 mb-4">
+//             <h2 className="text-xl font-bold">Contract Details</h2>
+//             <button
+//               onClick={onClose}
+//               className="text-gray-500 hover:text-gray-800"
+//             >
+//               ✕
+//             </button>
+//           </div>
+
+//           <div className="space-y-4">
+//             {/* Work Request */}
+//             <section>
+//               <h3 className="font-semibold text-lg mb-1">
+//                 Work Request: {workRequest?.title}
+//               </h3>
+//               <p className="text-gray-600">{workRequest?.description}</p>
+//               <p className="text-sm text-gray-500">
+//                 Category: {workRequest?.category}
+//               </p>
+//             </section>
+
+//             {/* Parties */}
+//             <section>
+//               <h3 className="font-semibold text-lg">Parties</h3>
+//               <p>
+//                 <span className="font-medium">Council:</span>{" "}
+//                 {council?.name} ({council?.email})
+//               </p>
+//               <p>
+//                 <span className="font-medium">Expert:</span>{" "}
+//                 {expert?.name} ({expert?.email})
+//               </p>
+//             </section>
+
+//             {/* Contract Info */}
+//             <section>
+//               <h3 className="font-semibold text-lg">Contract Info</h3>
+//               <p>
+//                 <span className="font-medium">Status:</span> {status}
+//               </p>
+//               <p>
+//                 <span className="font-medium">Amount:</span> ${finalAmount}
+//               </p>
+//               <p>
+//                 <span className="font-medium">Start Date:</span>{" "}
+//                 {new Date(startDate).toLocaleDateString()}
+//               </p>
+//               <p>
+//                 <span className="font-medium">End Date:</span>{" "}
+//                 {new Date(endDate).toLocaleDateString()}
+//               </p>
+//               <p>
+//                 <span className="font-medium">Contract ID:</span> {id}
+//               </p>
+//             </section>
+//           </div>
+
+//           <div className="mt-6 flex justify-end gap-3">
+//             <button
+//               onClick={onClose}
+//               className="px-4 py-2 rounded-lg bg-gray-200 hover:bg-gray-300"
+//             >
+//               Close
+//             </button>
+//             <button className="px-4 py-2 rounded-lg bg-blue-600 text-white hover:bg-blue-700">
+//               Submit Work
+//             </button>
+//           </div>
+//         </motion.div>
+//       </motion.div>
+//     </AnimatePresence>
+//   );
+// }
+

@@ -23,7 +23,7 @@ export async function POST(request) {
 
     const { data, error } = await supabase.storage
       .from(bucketName)
-      .createSignedUrl(filePath, 60 * 5); // URL expires in 5 minutes
+      .createSignedUrl(filePath, 60 * 10); // URL expires in 5 minutes
 
     if (error) {
       console.error("Supabase signed URL error:", error);
