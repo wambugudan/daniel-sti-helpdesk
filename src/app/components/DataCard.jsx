@@ -483,22 +483,50 @@ const DataCard = ({ workRequest, currentUser, onView, showStatus = false }) => {
       </p>
 
       {workRequest.fileURL && (
-        <div className="flex items-center gap-2 mt-3">
-          {getFileIcon(workRequest.fileURL)}
-          {loadingFileUrl ? (
-            <span className="text-gray-500">Loading file...</span>
-          ) : signedFileUrl ? (
-            <a
-              href={signedFileUrl}
+        // <div className="flex items-center gap-2 mt-3">
+        //   {getFileIcon(workRequest.fileURL)}
+        //   {loadingFileUrl ? (
+        //     <span className="text-gray-500">Loading file...</span>
+        //   ) : signedFileUrl ? (
+        //     <a
+        //       // href={signedFileUrl}
+        //       href={`/api/serve-file?filePath=${encodeURIComponent(workRequest.fileURL)}`}
+        //       target="_blank"
+        //       rel="noopener noreferrer"
+        //       className="text-blue-600 underline"
+        //     >
+        //       View File
+        //     </a>
+        //   ) : (
+        //     <span className="text-red-500">File link unavailable</span>
+        //   )}
+        // </div>
+
+        <div className="mt-4">
+          <h3 className="font-semibold text-lg mb-2">Attached File:</h3>
+          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2">
+              {getFileIcon(workRequest.fileURL)}
+              <a
+              href={`/api/serve-file?filePath=${encodeURIComponent(workRequest.fileURL)}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-blue-600 underline"
-            >
+              className="text-blue-600 underline hover:text-blue-500"
+              >
               View File
-            </a>
-          ) : (
-            <span className="text-red-500">File link unavailable</span>
-          )}
+              </a>
+          </div>
+          |
+          {/* New Download Link */}
+          <a
+              href={`/api/serve-file?filePath=${encodeURIComponent(workRequest.fileURL)}&download=true`}
+              download
+              // className="text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200"
+              className="text-blue-600 underline hover:text-blue-500"
+          >
+              Download File
+          </a>
+          </div>
         </div>
       )}
 

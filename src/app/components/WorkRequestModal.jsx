@@ -10,7 +10,7 @@ import { FaFilePdf, FaFileWord, FaFileImage, FaFileAlt } from "react-icons/fa";
 import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";
 import Confetti from "react-confetti";
-import BidForm from "./BidForm"; // Assuming BidForm handles its own user/work request data
+import BidForm from "./BidForm"; 
 import clsx from "clsx"; // Import clsx for conditional class names
 
 const getFileIcon = (fileURL) => {
@@ -470,11 +470,42 @@ const WorkRequestModal = ({ workRequest: initialWorkRequest, currentUser, onClos
                     </p>
 
                     {workRequest.fileURL && (
-                        <div className="flex items-center gap-2 mt-3">
-                            {getFileIcon(workRequest.fileURL)}
-                            <a href={workRequest.fileURL} target="_blank" rel="noopener noreferrer" className="text-blue-600 underline">
+                        // <div className="flex items-center gap-2 mt-3">
+                        //     {getFileIcon(workRequest.fileURL)}
+                        //     <a 
+                        //         // href={workRequest.fileURL} 
+                        //         href={`/api/serve-file?filePath=${encodeURIComponent(workRequest.fileURL)}`}
+                        //         target="_blank" rel="noopener noreferrer" 
+                        //         className="text-blue-600 underline"
+                        //     >
+                        //         View File
+                        //     </a>
+                        // </div>
+                        <div className="mt-4">
+                            <h3 className="font-semibold text-lg mb-2">Attached File:</h3>
+                            <div className="flex items-center gap-4">
+                            <div className="flex items-center gap-2">
+                                {getFileIcon(workRequest.fileURL)}
+                                <a
+                                href={`/api/serve-file?filePath=${encodeURIComponent(workRequest.fileURL)}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-blue-600 underline hover:text-blue-500"
+                                >
                                 View File
+                                </a>
+                            </div>
+                            |
+                            {/* New Download Link */}
+                            <a
+                                href={`/api/serve-file?filePath=${encodeURIComponent(workRequest.fileURL)}&download=true`}
+                                download
+                                // className="text-gray-600 dark:text-gray-400 hover:text-gray-800 dark:hover:text-gray-200"
+                                className="text-blue-600 underline hover:text-blue-500"
+                            >
+                                Download File
                             </a>
+                            </div>
                         </div>
                     )}
 
