@@ -13,6 +13,7 @@ import { useSignedUrl } from "@/hooks/useSignedUrl";
 
 
 
+
 const getFileIcon = (fileURL) => {
   if (!fileURL) return <FaFileAlt className="text-gray-500 text-2xl" />;
   const ext = fileURL.split(".").pop().toLowerCase();
@@ -597,10 +598,10 @@ const ContractModal = ({ contract, currentUser, onClose, onCancelled }) => {
                   />
 
                   {localSubmission.fileName && (
-                            <p className="text-sm text-gray-500 mb-2">
-                              Current File: <span className="font-medium">{localSubmission.fileName}</span>
-                            </p>
-                          )}
+                    <p className="text-sm text-gray-500 mb-2">
+                      Current File: <span className="font-medium">{localSubmission.fileName}</span>
+                    </p>
+                  )}
 
                   <input
                     type="file"

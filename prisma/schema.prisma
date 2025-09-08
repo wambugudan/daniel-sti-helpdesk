@@ -103,8 +103,8 @@ model Bid {
 model Submission {
   id           String   @id @default(cuid())
   message      String
-  fileURL      String
-  fileName     String
+  fileURL      String?
+  fileName     String?
   submittedAt  DateTime @default(now())
 
   bidId        String   @unique

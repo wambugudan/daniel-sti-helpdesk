@@ -1,4 +1,4 @@
-// // File: src/app/api/upload/route.js
+// File: src/app/api/upload/route.js
 
 import { createClient } from "@supabase/supabase-js";
 import { NextResponse } from "next/server";
@@ -53,7 +53,12 @@ export async function POST(request) {
     // You will need to create a separate API endpoint to generate a temporary, signed URL for retrieval.
     const fileURL = publicUrlData.publicUrl;
 
-    return NextResponse.json({ fileURL, fileName }, { status: 200 });
+    // return NextResponse.json({ fileURL, fileName }, { status: 200 });
+    return NextResponse.json(
+      { fileURL, fileName, filePath: fileName, bucket },
+      { status: 200 }
+    );
+    
   } catch (error) {
     console.error("Error uploading file:", error);
     return NextResponse.json(

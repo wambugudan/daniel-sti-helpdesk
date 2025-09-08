@@ -1,4 +1,4 @@
-// File: src/app/api/upload/route.js
+// File: src/app/api/uploads/route.js
 
 import { createClient } from "@supabase/supabase-js";
 import { IncomingForm } from "formidable";

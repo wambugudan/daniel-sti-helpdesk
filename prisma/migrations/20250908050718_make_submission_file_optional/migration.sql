@@ -1,0 +1,3 @@
+-- AlterTable
+ALTER TABLE "Submission" ALTER COLUMN "fileURL" DROP NOT NULL,
+ALTER COLUMN "fileName" DROP NOT NULL;
