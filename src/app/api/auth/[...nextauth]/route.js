@@ -67,7 +67,7 @@ export const authOptions = { // <--- EXPORT THIS
   },
   session: {
     strategy: "jwt",
-    maxAge: 3 * 24 * 60 * 60, // 3 days in seconds (259200 seconds)
+    maxAge: 1 * 24 * 60 * 60, // 1 day in seconds
     updateAge: 30 * 60, // 30 minutes in seconds (1800 seconds)
   },
   pages: {
