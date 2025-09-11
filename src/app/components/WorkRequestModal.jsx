@@ -13,6 +13,10 @@ import Confetti from "react-confetti";
 import BidForm from "./BidForm"; 
 import clsx from "clsx"; // Import clsx for conditional class names
 
+import { useSignedUrl } from "@/hooks/useSignedUrl";
+// import { getFileIcon } from "./contract/utils/fileIcons";
+
+
 const getFileIcon = (fileURL) => {
     if (!fileURL) return <FaFileAlt className="text-gray-500 text-2xl" />;
     const ext = fileURL.split(".").pop().toLowerCase();
@@ -93,6 +97,13 @@ const WorkRequestModal = ({ workRequest: initialWorkRequest, currentUser, onClos
             console.error("❌ Error fetching work request:", err);
         }
     };
+
+    // Use custom hook to get signed URL for submission file
+    const { signedFileUrl, loadingFileUrl } = useSignedUrl(
+        // submission?.fileURL,
+        workRequest.acceptedBid?.submission?.fileURL,
+        "submissions"
+    );
 
     const fetchExistingBid = async () => {
         const res = await fetch("/api/check-bid", {
@@ -701,19 +712,54 @@ const WorkRequestModal = ({ workRequest: initialWorkRequest, currentUser, onClos
 
                                         {/* Submission file display */}
                                         {workRequest.acceptedBid?.submission?.fileURL && (
-                                            <div className="mt-4">
-                                            <h4 className="font-semibold text-sm">Expert Submission:</h4>
-                                            <a
-                                                href={submissionFileUrl}
-                                                target="_blank"
-                                                rel="noopener noreferrer"
-                                                className="flex items-center gap-2 p-2 border rounded-md hover:bg-gray-100 transition-colors"
-                                            >
+                                            // <div className="mt-4">
+                                            // <h4 className="font-semibold text-sm">Expert Submission:</h4>
+                                            // <a
+                                            //     href={submissionFileUrl}
+                                            //     target="_blank"
+                                            //     rel="noopener noreferrer"
+                                            //     className="flex items-center gap-2 p-2 border rounded-md hover:bg-gray-100 transition-colors"
+                                            // >
+                                            //     {getFileIcon(workRequest.acceptedBid.submission.fileURL)}
+                                            //     <span className="truncate text-sm">
+                                            //     {workRequest.acceptedBid.submission.fileName || "View Submission"}
+                                            //     </span>
+                                            // </a>
+                                            // </div>
+                                            <div className="flex items-center gap-2">
                                                 {getFileIcon(workRequest.acceptedBid.submission.fileURL)}
-                                                <span className="truncate text-sm">
-                                                {workRequest.acceptedBid.submission.fileName || "View Submission"}
-                                                </span>
-                                            </a>
+
+                                                {loadingFileUrl ? (
+                                                    <span className="text-gray-500 text-xs">Loading attachment...</span>
+                                                ) : signedFileUrl ? (
+                                                    <>
+                                                    <a
+                                                        href={`/api/serve-file?filePath=${encodeURIComponent(
+                                                        // submission.fileURL
+                                                        submissionFileUrl
+                                                        )}&bucket=submissions`}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className="text-blue-600 underline text-xs"
+                                                    >
+                                                        {/* {submissionFileUrl || "📎 View Attachment"} */}
+                                                        View Attachment
+                                                    </a>
+                                                    |
+                                                    <a
+                                                        href={`/api/serve-file?filePath=${encodeURIComponent(
+                                                        // submission.fileURL
+                                                        submissionFileUrl
+                                                        )}&bucket=submissions&download=true`}
+                                                        download={submissionFileUrl}
+                                                        className="text-blue-600 underline text-xs hover:text-blue-500"
+                                                    >
+                                                        Download Attachment
+                                                    </a>
+                                                    </>
+                                                ) : (
+                                                    <span className="text-red-500 text-xs">File unavailable</span>
+                                                )}
                                             </div>
                                         )}
 
