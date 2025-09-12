@@ -404,6 +404,56 @@ const WorkRequestModal = ({ workRequest: initialWorkRequest, currentUser, onClos
     //     }
     // };
 
+    
+    // const handleSendMessage = async () => {
+    //     if (!newMessage.trim() && !newFile) {
+    //         toast.error("Cannot send empty message");
+    //         return;
+    //     }
+
+    //     setSending(true);
+    //     try {
+    //         let fileURL = null;
+
+    //         // ✅ If a file is selected, upload to Supabase first
+    //         if (newFile) {
+    //         const fileName = `${Date.now()}-${newFile.name}`;
+    //         const { error: uploadError } = await supabase.storage
+    //             .from("submission_messages") // or "submissions" if you want
+    //             .upload(fileName, newFile);
+
+    //         if (uploadError) throw uploadError;
+    //         fileURL = fileName;
+    //         }
+
+    //         // ✅ Send JSON instead of FormData
+    //         const res = await fetch("/api/submission/message/send", {
+    //             method: "POST",
+    //             headers: { "Content-Type": "application/json" },
+    //             body: JSON.stringify({
+    //                 submissionId: workRequest.acceptedBid?.submission?.id,
+    //                 senderId: currentUser.id,
+    //                 senderRole: currentUser.role,
+    //                 content: newMessage.trim(),
+    //                 fileURL,
+    //             }),
+    //         });
+
+    //         if (!res.ok) throw new Error("Failed to send message");
+
+    //         toast.success("Message sent!");
+    //         setNewMessage("");
+    //         setNewFile(null);
+
+    //         await fetchMessages(); // Refresh conversation
+    //     } catch (error) {
+    //         console.error(error);
+    //         toast.error("Failed to send");
+    //     } finally {
+    //         setSending(false);
+    //     }
+    // };
+
     const handleSendMessage = async () => {
         if (!newMessage.trim() && !newFile) {
             toast.error("Cannot send empty message");
@@ -414,28 +464,38 @@ const WorkRequestModal = ({ workRequest: initialWorkRequest, currentUser, onClos
         try {
             let fileURL = null;
 
-            // ✅ If a file is selected, upload to Supabase first
+            // ✅ Upload file first (if present)
             if (newFile) {
-            const fileName = `${Date.now()}-${newFile.name}`;
-            const { error: uploadError } = await supabase.storage
-                .from("submission_messages") // or "submissions" if you want
-                .upload(fileName, newFile);
+            const formData = new FormData();
+            formData.append("file", newFile);
+            formData.append("bucket", "submission_messages");
 
-            if (uploadError) throw uploadError;
-            fileURL = fileName;
+            const uploadRes = await fetch("/api/uploads", {
+                method: "POST",
+                body: formData,
+            });
+
+            if (!uploadRes.ok) {
+                throw new Error(`Upload failed: ${await uploadRes.text()}`);
             }
 
-            // ✅ Send JSON instead of FormData
+            const uploaded = await uploadRes.json();
+            fileURL = uploaded.fileURL;
+            }
+
+            // ✅ Send message payload as JSON
+            const payload = {
+            submissionId: workRequest.acceptedBid?.submission?.id,
+            senderId: currentUser.id,
+            senderRole: currentUser.role,
+            content: newMessage.trim() || null,
+            fileURL,
+            };
+
             const res = await fetch("/api/submission/message/send", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    submissionId: workRequest.acceptedBid?.submission?.id,
-                    senderId: currentUser.id,
-                    senderRole: currentUser.role,
-                    content: newMessage.trim(),
-                    fileURL,
-                }),
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(payload),
             });
 
             if (!res.ok) throw new Error("Failed to send message");
@@ -446,12 +506,13 @@ const WorkRequestModal = ({ workRequest: initialWorkRequest, currentUser, onClos
 
             await fetchMessages(); // Refresh conversation
         } catch (error) {
-            console.error(error);
+            console.error("❌ handleSendMessage error:", error);
             toast.error("Failed to send");
         } finally {
             setSending(false);
         }
     };
+
 
 
     return (
@@ -744,38 +805,10 @@ const WorkRequestModal = ({ workRequest: initialWorkRequest, currentUser, onClos
                                             <span className="italic text-gray-800 dark:text-gray-300">
                                                 {workRequest.acceptedBid.submission?.message}
                                             </span>
-                                        </p>
-
-                                        {/* {workRequest.acceptedBid.submission?.fileURL && (
-                                            <p className="mb-2">
-                                                <strong>File:</strong>{" "}
-                                                <a
-                                                    href={workRequest.acceptedBid.submission?.fileURL}
-                                                    target="_blank"
-                                                    rel="noopener noreferrer"
-                                                    className="text-blue-600 underline"
-                                                >
-                                                    {workRequest.acceptedBid.submission?.fileName || "View Submitted File"}
-                                                </a>
-                                            </p>
-                                        )} */}
+                                        </p>                                        
 
                                         {/* Submission file display */}
-                                        {workRequest.acceptedBid?.submission?.fileURL && (
-                                            // <div className="mt-4">
-                                            // <h4 className="font-semibold text-sm">Expert Submission:</h4>
-                                            // <a
-                                            //     href={submissionFileUrl}
-                                            //     target="_blank"
-                                            //     rel="noopener noreferrer"
-                                            //     className="flex items-center gap-2 p-2 border rounded-md hover:bg-gray-100 transition-colors"
-                                            // >
-                                            //     {getFileIcon(workRequest.acceptedBid.submission.fileURL)}
-                                            //     <span className="truncate text-sm">
-                                            //     {workRequest.acceptedBid.submission.fileName || "View Submission"}
-                                            //     </span>
-                                            // </a>
-                                            // </div>
+                                        {workRequest.acceptedBid?.submission?.fileURL && (                                            
                                             <div className="flex items-center gap-2">
                                                 {getFileIcon(workRequest.acceptedBid.submission.fileURL)}
 
@@ -855,17 +888,7 @@ const WorkRequestModal = ({ workRequest: initialWorkRequest, currentUser, onClos
                                                     {' '} ({msg.senderRole})
                                                 </p>
                                                 <p className="text-sm">{msg.content}</p>
-                                                {/* {msg.fileURL && (
-                                                    <a
-                                                        href={msg.fileURL}
-                                                        target="_blank"
-                                                        rel="noopener noreferrer"
-                                                        className="text-xs text-blue-600 underline"
-                                                    >
-                                                        📎 Attachment
-                                                    </a>
-                                                )} */}
-
+                                                
                                                 {msg.fileURL && (
                                                     <div className="flex items-center gap-2 mt-1">
                                                         {getFileIcon(msg.fileName)}
