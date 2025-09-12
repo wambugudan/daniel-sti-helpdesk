@@ -6,6 +6,7 @@ const ConversationSection = ({
   messages,
   newMessage,
   setNewMessage,
+  currentUserId,
   newFile,
   setNewFile,
   sending,
@@ -29,7 +30,9 @@ const ConversationSection = ({
         </p>
       )}
 
-      {!loading && !error && <MessageList messages={messages} />}
+      {!loading && !error && 
+        <MessageList messages={messages} currentUserId={currentUserId}/>
+      }
 
       <MessageComposer
         newMessage={newMessage}

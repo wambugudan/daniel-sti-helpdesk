@@ -12,7 +12,7 @@ const SkeletonBubble = () => (
   </div>
 );
 
-const MessageList = ({ messages, loading }) => {
+const MessageList = ({ messages, loading, currentUserId }) => {
   if (loading) {
     return (
       <div className="space-y-3 mb-3 max-h-60 overflow-y-auto">
@@ -30,7 +30,7 @@ const MessageList = ({ messages, loading }) => {
   return (
     <div className="space-y-3 mb-3 max-h-60 overflow-y-auto">
       {messages.map((msg) => (
-        <MessageBubble key={msg.id} msg={msg} />
+        <MessageBubble key={msg.id} msg={msg} currentUserId={currentUserId} />
       ))}
     </div>
   );
