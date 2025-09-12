@@ -369,6 +369,41 @@ const WorkRequestModal = ({ workRequest: initialWorkRequest, currentUser, onClos
         }
     };
 
+    // const handleSendMessage = async () => {
+    //     if (!newMessage.trim() && !newFile) {
+    //         toast.error("Cannot send empty message");
+    //         return;
+    //     }
+
+    //     setSending(true);
+    //     try {
+    //         const formData = new FormData();
+    //         formData.append("submissionId", workRequest.acceptedBid?.submission?.id);
+    //         formData.append("senderId", currentUser.id);
+    //         formData.append("senderRole", currentUser.role);
+    //         formData.append("content", newMessage.trim());
+    //         if (newFile) formData.append("file", newFile);
+
+    //         const res = await fetch("/api/submission/message/send", {
+    //             method: "POST",
+    //             body: formData,
+    //         });
+
+    //         if (!res.ok) throw new Error("Failed to send message");
+
+    //         toast.success("Message sent!");
+    //         setNewMessage("");
+    //         setNewFile(null);
+
+    //         await fetchMessages(); // Refresh conversation
+    //     } catch (error) {
+    //         console.error(error);
+    //         toast.error("Failed to send");
+    //     } finally {
+    //         setSending(false);
+    //     }
+    // };
+
     const handleSendMessage = async () => {
         if (!newMessage.trim() && !newFile) {
             toast.error("Cannot send empty message");
@@ -377,16 +412,30 @@ const WorkRequestModal = ({ workRequest: initialWorkRequest, currentUser, onClos
 
         setSending(true);
         try {
-            const formData = new FormData();
-            formData.append("submissionId", workRequest.acceptedBid?.submission?.id);
-            formData.append("senderId", currentUser.id);
-            formData.append("senderRole", currentUser.role);
-            formData.append("content", newMessage.trim());
-            if (newFile) formData.append("file", newFile);
+            let fileURL = null;
 
+            // ✅ If a file is selected, upload to Supabase first
+            if (newFile) {
+            const fileName = `${Date.now()}-${newFile.name}`;
+            const { error: uploadError } = await supabase.storage
+                .from("submission_messages") // or "submissions" if you want
+                .upload(fileName, newFile);
+
+            if (uploadError) throw uploadError;
+            fileURL = fileName;
+            }
+
+            // ✅ Send JSON instead of FormData
             const res = await fetch("/api/submission/message/send", {
                 method: "POST",
-                body: formData,
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    submissionId: workRequest.acceptedBid?.submission?.id,
+                    senderId: currentUser.id,
+                    senderRole: currentUser.role,
+                    content: newMessage.trim(),
+                    fileURL,
+                }),
             });
 
             if (!res.ok) throw new Error("Failed to send message");
@@ -403,6 +452,7 @@ const WorkRequestModal = ({ workRequest: initialWorkRequest, currentUser, onClos
             setSending(false);
         }
     };
+
 
     return (
         <AnimatePresence>
@@ -805,7 +855,7 @@ const WorkRequestModal = ({ workRequest: initialWorkRequest, currentUser, onClos
                                                     {' '} ({msg.senderRole})
                                                 </p>
                                                 <p className="text-sm">{msg.content}</p>
-                                                {msg.fileURL && (
+                                                {/* {msg.fileURL && (
                                                     <a
                                                         href={msg.fileURL}
                                                         target="_blank"
@@ -814,7 +864,47 @@ const WorkRequestModal = ({ workRequest: initialWorkRequest, currentUser, onClos
                                                     >
                                                         📎 Attachment
                                                     </a>
-                                                )}
+                                                )} */}
+
+                                                {msg.fileURL && (
+                                                    <div className="flex items-center gap-2 mt-1">
+                                                        {getFileIcon(msg.fileName)}
+
+                                                        {loadingFileUrl ? (
+                                                            <span className="text-gray-500 text-xs">
+                                                            Loading attachment...
+                                                            </span>
+                                                        ) : signedFileUrl ? (
+                                                            <>
+                                                                <a
+                                                                    href={`/api/serve-file?filePath=${encodeURIComponent(
+                                                                    msg.fileURL
+                                                                    )}&bucket=submission_messages`}
+                                                                    target="_blank"
+                                                                    rel="noopener noreferrer"
+                                                                    className="text-xs text-blue-600 underline"
+                                                                >
+                                                                    View Attachment
+                                                                </a>
+                                                                |
+                                                                <a
+                                                                    href={`/api/serve-file?filePath=${encodeURIComponent(
+                                                                    msg.fileURL
+                                                                    )}&bucket=submission_messages&download=true`}
+                                                                    download={msg.fileName}
+                                                                    className="text-xs text-blue-600 underline hover:text-blue-500"
+                                                                >
+                                                                    Download Attachment
+                                                                </a>
+                                                            </>
+                                                        ) : (
+                                                            <span className="text-red-500 text-xs">
+                                                                File unavailable
+                                                            </span>
+                                                        )}
+                                                    </div>
+                                                )}                                                    
+
                                                 <p className="text-[10px] text-gray-400 mt-1">
                                                     {new Date(msg.createdAt).toLocaleString()}
                                                 </p>
