@@ -463,10 +463,17 @@ import { useSession, signOut } from 'next-auth/react';
 import { useRouter } from 'next/navigation';
 import { FaSpinner, FaUpload, FaLinkedin, FaGithub, FaGlobe } from 'react-icons/fa';
 import toast from 'react-hot-toast';
+import { createClient } from '@supabase/supabase-js';
 
 const MyProfilePage = () => {
   const { data: session, status: sessionStatus, update: updateSession } = useSession();
   const router = useRouter();
+
+  // Initialize Supabase client
+  const supabase = createClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  );
 
   // State for tabs
   const [activeTab, setActiveTab] = useState('profile');
@@ -552,37 +559,200 @@ const MyProfilePage = () => {
     }
   };
 
+  // const handleProfileSubmit = async (e) => {
+  //   e.preventDefault();
+  //   setIsUpdatingProfile(true);
+  //   setError(null);
+
+  //   let imageUrl = profileData.image;
+
+  //   if (file) {
+  //     const formData = new FormData();
+  //     formData.append('image', file);
+
+  //     try {
+  //       const uploadRes = await fetch('/api/upload-image', {
+  //         method: 'POST',
+  //         body: formData,
+  //       });
+  //       if (!uploadRes.ok) throw new Error('Failed to upload image.');
+  //       const uploadResult = await uploadRes.json();
+  //       imageUrl = uploadResult.url;
+  //       toast.success('Profile picture uploaded!');
+  //     } catch (uploadError) {
+  //       setError(uploadError.message || 'Failed to upload profile picture.');
+  //       setIsUpdatingProfile(false);
+  //       return;
+  //     }
+  //   }
+
+  //   try {
+  //     const res = await fetch('/api/profile', {
+  //       method: 'PATCH',
+  //       headers: { 'Content-Type': 'application/json' },
+  //       body: JSON.stringify({
+  //         name: profileData.name,
+  //         image: imageUrl,
+  //         areaOfProfessionalExperience: profileData.areaOfProfessionalExperience,
+  //         publications: profileData.publications,
+  //         linkedinUrl: profileData.linkedinUrl,
+  //         githubUrl: profileData.githubUrl,
+  //         websiteUrl: profileData.websiteUrl,
+  //       }),
+  //     });
+
+  //     if (!res.ok) throw new Error('Failed to update profile.');
+  //     const updatedUser = await res.json();
+  //     setProfileData(updatedUser);
+  //     toast.success('Profile updated successfully!');
+  //     await updateSession();
+  //   } catch (updateError) {
+  //     setError(updateError.message || 'Could not update profile.');
+  //     toast.error(updateError.message || 'Failed to update profile.');
+  //   } finally {
+  //     setIsUpdatingProfile(false);
+  //     setFile(null);
+  //   }
+  // };
+
   const handleProfileSubmit = async (e) => {
     e.preventDefault();
     setIsUpdatingProfile(true);
-    setError(null);
+    setError("");
 
-    let imageUrl = profileData.image;
+    let imageUrl = profileData?.image || null;
+
+    // ✅ Upload to Supabase "profiles" bucket if new file selected
+    // if (file) {
+    //   try {
+    //     const fileExt = file.name.split(".").pop();
+    //     // const fileName = `${session.user.id}-${Date.now()}.${fileExt}`;
+    //     // const fileName = `${Date.now()}.${fileExt}`;
+    //     const filePath = `${session.user.id}/${fileName}`;
+
+    //     const { error: uploadError } = await supabase.storage
+    //       .from("profiles") // 👈 your Supabase bucket
+    //       .upload(filePath, file, {
+    //         cacheControl: "3600",
+    //         upsert: true,
+    //       });
+
+    //     if (uploadError) {
+    //       console.error("Supabase upload error:", uploadError);
+    //       throw new Error(uploadError.message || "Upload failed");
+    //     }
+
+    //     // ✅ Get public URL from Supabase
+    //     const { data: publicUrlData } = supabase.storage
+    //       .from("profiles")
+    //       .getPublicUrl(fileName);
+
+    //     imageUrl = publicUrlData.publicUrl;
+    //     toast.success("Profile picture uploaded!");
+    //   } catch (uploadError) {
+    //     console.error("Upload error:", uploadError);
+    //     setError(uploadError.message || "Failed to upload profile picture.");
+    //     setIsUpdatingProfile(false);
+    //     return;
+    //   }
+    // }
+
+    // if (file) {
+    //   try {
+    //     const userId = session?.user?.id;
+    //     const fileExt = file.name.split(".").pop();
+    //     const filePath = `${userId}/profile.${fileExt}`;
+
+    //     // 1. Delete the old file if exists
+    //     if (profileData.image && profileData.image.includes("profiles/")) {
+    //       const oldPath = profileData.image.split("/profiles/")[1];
+    //       await supabase.storage.from("profiles").remove([oldPath]);
+    //     }
+
+    //     // 2. Upload new file (overwrite)
+    //     const { error: uploadError } = await supabase.storage
+    //       .from("profiles")
+    //       .upload(filePath, file, {
+    //         cacheControl: "3600",
+    //         upsert: true, // overwrite if same name
+    //       });
+
+    //     if (uploadError) throw new Error(uploadError.message);
+
+    //     // 3. Get new public URL
+    //     const { data: publicUrlData } = supabase.storage
+    //       .from("profiles")
+    //       .getPublicUrl(filePath);
+
+    //     imageUrl = publicUrlData.publicUrl;
+    //     toast.success("Profile picture updated!");
+    //   } catch (uploadError) {
+    //     console.error("Upload error:", uploadError);
+    //     setError(uploadError.message || "Failed to upload profile picture.");
+    //     setIsUpdatingProfile(false);
+    //     return;
+    //   }
+    // }
 
     if (file) {
-      const formData = new FormData();
-      formData.append('image', file);
-
       try {
-        const uploadRes = await fetch('/api/upload-image', {
-          method: 'POST',
-          body: formData,
-        });
-        if (!uploadRes.ok) throw new Error('Failed to upload image.');
-        const uploadResult = await uploadRes.json();
-        imageUrl = uploadResult.url;
-        toast.success('Profile picture uploaded!');
+        const userId = session?.user?.id;
+        const fileExt = file.name.split(".").pop();
+        const filePath = `${userId}/profile.${fileExt}`;
+
+        console.log("=== Debug Upload Info ===");
+        console.log("User ID:", userId);
+        console.log("File Name:", file.name);
+        console.log("File Extension:", fileExt);
+        console.log("Upload Path:", filePath);
+        console.log("Bucket:", "profiles");
+
+        // 1. Delete the old file if it exists
+        if (profileData.image && profileData.image.includes("profiles/")) {
+          // Extract relative path inside the bucket
+          const oldPath = profileData.image.split("/profiles/")[1];
+          if (oldPath) {
+            await supabase.storage.from("profiles").remove([oldPath]);
+          }
+        }
+
+        // 2. Upload new file (overwrite)
+        const { error: uploadError } = await supabase.storage
+          .from("profiles")
+          .upload(filePath, file, {
+            cacheControl: "3600",
+            upsert: true, // ✅ allows overwrite
+          });
+
+        if (uploadError) throw new Error(uploadError.message);
+
+        // 3. Get new public URL
+        const { data: publicUrlData } = supabase.storage
+          .from("profiles")
+          .getPublicUrl(filePath);
+
+        const imageUrl = publicUrlData.publicUrl;
+
+        toast.success("Profile picture updated!");
+
+        // You might also want to update this in your DB:
+        // await supabase.from("User").update({ image: imageUrl }).eq("id", userId);
+
       } catch (uploadError) {
-        setError(uploadError.message || 'Failed to upload profile picture.');
+        console.error("Upload error:", uploadError);
+        setError(uploadError.message || "Failed to upload profile picture.");
         setIsUpdatingProfile(false);
         return;
       }
     }
 
+
+
+    // ✅ Update user profile in your DB
     try {
-      const res = await fetch('/api/profile', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
+      const res = await fetch("/api/profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           name: profileData.name,
           image: imageUrl,
@@ -594,14 +764,19 @@ const MyProfilePage = () => {
         }),
       });
 
-      if (!res.ok) throw new Error('Failed to update profile.');
+      if (!res.ok) {
+        const errorData = await res.json();
+        throw new Error(errorData.message || "Failed to update profile.");
+      }
+
       const updatedUser = await res.json();
       setProfileData(updatedUser);
-      toast.success('Profile updated successfully!');
+      toast.success("Profile updated successfully!");
       await updateSession();
-    } catch (updateError) {
-      setError(updateError.message || 'Could not update profile.');
-      toast.error(updateError.message || 'Failed to update profile.');
+    } catch (err) {
+      console.error("Profile update error:", err.message);
+      setError(err.message || "Failed to update profile.");
+      toast.error(err.message || "Failed to update profile.");
     } finally {
       setIsUpdatingProfile(false);
       setFile(null);
