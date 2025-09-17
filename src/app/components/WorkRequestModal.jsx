@@ -772,7 +772,7 @@ const WorkRequestModal = ({ workRequest: initialWorkRequest, currentUser, onClos
                             )}
 
                             {/* Conversation */}
-                            {workRequest.acceptedBid?.submission && (
+                            {/* {workRequest.acceptedBid?.submission && (
                                 <div className="mt-6 border-t pt-4">
                                     <h3 className="font-semibold mb-2">💬 Conversation</h3>
 
@@ -880,7 +880,151 @@ const WorkRequestModal = ({ workRequest: initialWorkRequest, currentUser, onClos
                                         </button>
                                     </div>
                                 </div>
+                            )} */}
+
+                            {workRequest.acceptedBid?.submission && (
+                                <div className="mt-6 border-t pt-4">
+                                    <h3 className="font-semibold mb-2">💬 Conversation</h3>
+
+                                    {/* Messages */}
+                                    <div className="space-y-3 max-h-60 overflow-y-auto pr-2">
+                                    {isClient && messages.map((msg) => {
+                                        const isOwnMessage =
+                                        msg.senderId === currentUser.id || msg.sender?.id === currentUser.id;
+
+                                        return (
+                                        <div
+                                            key={msg.id}
+                                            className={`p-2 max-w-xs sm:max-w-md md:max-w-lg ${
+                                            isOwnMessage
+                                                ? "ml-auto text-white"
+                                                : "mr-auto text-black dark:text-gray-200"
+                                            }`}
+                                        >
+                                            <div
+                                            className={`border p-2 ${
+                                                isOwnMessage
+                                                ? "bg-blue-500 rounded-2xl rounded-br-sm" // sender bubble
+                                                : "bg-gray-100 dark:bg-gray-800 rounded-2xl rounded-bl-sm" // receiver bubble
+                                            }`}
+                                            >
+                                            {/* Header: sender + role + time */}
+                                            <div className="flex justify-between text-xs opacity-80 mb-1">
+                                                <span>
+                                                {msg.senderId ? (
+                                                    <Link
+                                                    href={`/profile/${msg.senderId}`}
+                                                    className={`font-medium hover:underline ${
+                                                        isOwnMessage
+                                                        ? "text-white"
+                                                        : "text-blue-600 dark:text-blue-400 hover:text-blue-500"
+                                                    }`}
+                                                    >
+                                                    {msg.sender?.name || "Unknown"}
+                                                    </Link>
+                                                ) : (
+                                                    <span>{msg.sender?.name || "Unknown"}</span>
+                                                )}{" "}
+                                                ({msg.senderRole || "N/A"})
+                                                </span>
+                                                <span className="text-[10px]">
+                                                {new Date(msg.createdAt).toLocaleString()}
+                                                </span>
+                                            </div>
+
+                                            {/* Content */}
+                                            <p className="text-sm mb-1">{msg.content}</p>
+
+                                            {/* File Attachment */}
+                                            {msg.fileURL && (
+                                                <div className="flex items-center gap-2 mt-1">
+                                                {getFileIcon(msg.fileName)}
+
+                                                {loadingFileUrl ? (
+                                                    <span className="opacity-70 text-xs">
+                                                    Loading attachment...
+                                                    </span>
+                                                ) : signedFileUrl ? (
+                                                    <>
+                                                    <a
+                                                        href={`/api/serve-file?filePath=${encodeURIComponent(
+                                                        msg.fileURL
+                                                        )}&bucket=submission_messages`}
+                                                        target="_blank"
+                                                        rel="noopener noreferrer"
+                                                        className={`underline text-xs ${
+                                                        isOwnMessage
+                                                            ? "text-white hover:text-gray-200"
+                                                            : "text-blue-600 hover:text-blue-500"
+                                                        }`}
+                                                    >
+                                                        View Attachment
+                                                    </a>
+                                                    |
+                                                    <a
+                                                        href={`/api/serve-file?filePath=${encodeURIComponent(
+                                                        msg.fileURL
+                                                        )}&bucket=submission_messages&download=true`}
+                                                        download={msg.fileName}
+                                                        className={`underline text-xs ${
+                                                        isOwnMessage
+                                                            ? "text-white hover:text-gray-200"
+                                                            : "text-blue-600 hover:text-blue-500"
+                                                        }`}
+                                                    >
+                                                        Download Attachment
+                                                    </a>
+                                                    </>
+                                                ) : (
+                                                    <span className="text-red-500 text-xs">
+                                                    File unavailable
+                                                    </span>
+                                                )}
+                                                </div>
+                                            )}
+                                            </div>
+                                        </div>
+                                        );
+                                    })}
+                                    <div ref={messagesEndRef} />
+                                    </div>
+
+                                    {/* Composer */}
+                                    <div className="mt-4 flex flex-col gap-2 border-t pt-2">
+                                    <textarea
+                                        placeholder="Type your message..."
+                                        rows={2}
+                                        value={newMessage}
+                                        onChange={(e) => setNewMessage(e.target.value)}
+                                        className="w-full p-2 border rounded mb-2 text-sm bg-inherit dark:bg-gray-700 dark:text-gray-200 border-gray-300 dark:border-gray-600"
+                                    />
+
+                                    {newFile && (
+                                        <p className="text-sm text-gray-500">
+                                        Selected File: <span className="font-medium">{newFile.name}</span>
+                                        </p>
+                                    )}
+
+                                    <div className="flex gap-2">
+                                        <input
+                                        type="file"
+                                        accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                                        className="flex-1 text-xs cursor-pointer"
+                                        onChange={(e) => setNewFile(e.target.files[0])}
+                                        />
+
+                                        <button
+                                        disabled={sending}
+                                        onClick={handleSendMessage}
+                                        className="px-4 py-2 text-sm bg-blue-500 text-white rounded hover:bg-blue-400"
+                                        >
+                                        {sending ? "Sending..." : "Send"}
+                                        </button>
+                                    </div>
+                                    </div>
+                                </div>
                             )}
+
 
                             {/* ✅ Mark as Completed Button */}
                             {workRequest.status === "IN_PROGRESS" && (
