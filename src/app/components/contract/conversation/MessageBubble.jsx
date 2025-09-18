@@ -3,6 +3,7 @@
 import { formatDateTime } from "../utils/formatters";
 import { useSignedUrl } from "@/hooks/useSignedUrl";
 import { getFileIcon } from "../utils/fileIcons";
+import Link from "next/link";
 
 const MessageBubble = ({ msg, currentUserId }) => {
   const { signedFileUrl, loadingFileUrl } = useSignedUrl(
@@ -31,10 +32,28 @@ const MessageBubble = ({ msg, currentUserId }) => {
         }`}
       >
         <div className="flex justify-between text-xs opacity-80 mb-1">
-          <span>
+          {/* <span>
             <strong>{msg.sender?.name || "Unknown"}</strong> (
             {msg.senderRole || "N/A"})
+          </span> */}
+          <span>
+            {msg.senderId ? (
+                <Link
+                href={`/profile/${msg.senderId}`}
+                className={`font-medium hover:underline ${
+                    isOwnMessage
+                    ? "text-white"
+                    : "text-blue-600 dark:text-blue-400 hover:text-blue-500"
+                }`}
+                >
+                <strong> {msg.sender?.name || "Unknown"} </strong>
+                </Link> 
+            ) : (
+                <span>{msg.sender?.name || "Unknown"}</span>
+            )}{" "}
+            ({msg.senderRole || "N/A"})
           </span>
+
           <span>{formatDateTime(msg.createdAt)}</span>
         </div>
 

@@ -1,6 +1,7 @@
 // File: src/app/api/uploads/route.js
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { getServerSession } from "next-auth";
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -9,6 +10,12 @@ const supabase = createClient(
 );
 
 export async function POST(req) {
+  // ✅ Authenticate the user
+  const session = await getServerSession();
+  if (!session) {
+    return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+  }
+  
   try {
     const form = await req.formData();
     const file = form.get("file");

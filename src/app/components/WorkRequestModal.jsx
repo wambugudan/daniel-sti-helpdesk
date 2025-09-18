@@ -812,7 +812,7 @@ const WorkRequestModal = ({ workRequest: initialWorkRequest, currentUser, onClos
                                                     }`}
                                                     >
                                                     {msg.sender?.name || "Unknown"}
-                                                    </Link>
+                                                    </Link> 
                                                 ) : (
                                                     <span>{msg.sender?.name || "Unknown"}</span>
                                                 )}{" "}
