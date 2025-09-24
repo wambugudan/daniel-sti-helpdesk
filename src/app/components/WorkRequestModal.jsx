@@ -507,18 +507,7 @@ const WorkRequestModal = ({ workRequest: initialWorkRequest, currentUser, onClos
                         {workRequest.description}
                     </p>
 
-                    {workRequest.fileURL && (
-                        // <div className="flex items-center gap-2 mt-3">
-                        //     {getFileIcon(workRequest.fileURL)}
-                        //     <a 
-                        //         // href={workRequest.fileURL} 
-                        //         href={`/api/serve-file?filePath=${encodeURIComponent(workRequest.fileURL)}`}
-                        //         target="_blank" rel="noopener noreferrer" 
-                        //         className="text-blue-600 underline"
-                        //     >
-                        //         View File
-                        //     </a>
-                        // </div>
+                    {workRequest.fileURL && (                        
                         <div className="mt-4">
                             <h3 className="font-semibold text-lg mb-2">Attached File:</h3>
                             <div className="flex items-center gap-4">

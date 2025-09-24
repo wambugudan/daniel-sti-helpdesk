@@ -1,36 +1,3 @@
-// import prisma from "@/libs/prisma";
-// import { NextResponse } from "next/server";
-
-// export async function POST(req) {
-//   try {
-//     const { notificationIds } = await req.json();
-
-//     if (!Array.isArray(notificationIds) || notificationIds.length === 0) {
-//       return NextResponse.json(
-//         { error: "Invalid notification IDs" },
-//         { status: 400 }
-//       );
-//     }
-
-//     await prisma.notification.updateMany({
-//       where: {
-//         id: { in: notificationIds },
-//         read: false,
-//       },
-//       data: { read: true },
-//     });
-
-//     return new NextResponse(null, { status: 204 });
-//   } catch (err) {
-//     console.error("Failed to mark notifications as read:", err);
-//     return NextResponse.json(
-//       { error: "Internal server error" },
-//       { status: 500 }
-//     );
-//   }
-// }
-
-
 // File: src/app/api/notifications/mark-read/route.js
 import prisma from "@/libs/prisma";
 import { NextResponse } from "next/server";

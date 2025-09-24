@@ -117,36 +117,6 @@ export async function PUT(request, context) {
   }
 }
 
-
-
-// API for handling DELETE Requests
-// export async function DELETE(request, context) {
-//   try {
-//     const params = await context.params; 
-//     const { id } = params;
-//     // const { id } = context.params || {};
-
-//     if (!id) {
-//       throw new Error("Missing or invalid ID in request parameters");
-//     }
-
-//     await prisma.workRequest.delete({
-//       where: { id },
-//     });
-
-//     return new Response(JSON.stringify({ message: "Deleted successfully" }), {
-//       status: 200,
-//       headers: { "Content-Type": "application/json" },
-//     });
-//   } catch (error) {
-//     console.error("Error deleting work request:", error);
-//     return new Response(
-//       JSON.stringify({ error: "Failed to delete work request" }),
-//       { status: 500, headers: { "Content-Type": "application/json" } }
-//     );
-//   }
-// }
-
 export async function DELETE(request, context) {
     // const { id } = params;
     const params = await context.params; 

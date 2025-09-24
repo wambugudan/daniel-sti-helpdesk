@@ -66,30 +66,7 @@ const BidForm = ({ currentUser, workRequest, onBidSubmitted }) => {
     }
     };
 
-    // Function to handle bid cancellation
-
-    // const handleCancelBid = async () => {
-    // if (!confirm("Are you sure you want to cancel your bid?")) return;
-    // try {
-    //     const res = await fetch("/api/bid/cancel", {
-    //     method: "DELETE",
-    //     headers: { "Content-Type": "application/json" },
-    //     body: JSON.stringify({ userId: currentUser.id, workRequestId: workRequest.id }),
-    //     });
-
-    //     if (!res.ok) throw new Error("Failed to cancel bid");
-
-    //     toast.success("Bid cancelled");
-    //     setExistingBid(null);
-    //     setBidAmount("");
-    //     setBidMessage("");
-    //     if (onBidSubmitted) onBidSubmitted();
-    // } catch (error) {
-    //     toast.error("Error cancelling bid");
-    //     console.error("Cancel error:", error);
-    // }
-    // };
-
+    
     const handleCancelBid = async () => {
         if (!confirm("Are you sure you want to cancel your bid?")) return;
         try {
