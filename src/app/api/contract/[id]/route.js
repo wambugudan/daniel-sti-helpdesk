@@ -8,7 +8,7 @@ export async function GET(_, context) {
   try {
     const { id } = await context.params;
 
-    console.log("📩 API called: /api/contract/[id]", { id });
+    // console.log("📩 API called: /api/contract/[id]", { id });
 
     if (!id) {
       console.error("❌ Missing contract ID in request");
@@ -62,12 +62,12 @@ export async function GET(_, context) {
       return NextResponse.json({ error: "Contract not found" }, { status: 404 });
     }
 
-    console.log("✅ Contract fetched successfully:", {
-      id: contract.id,
-      title: contract.workRequest?.title,
-      client: contract.council?.name,
-      expert: contract.expert?.name,
-    });
+    // console.log("✅ Contract fetched successfully:", {
+    //   id: contract.id,
+    //   title: contract.workRequest?.title,
+    //   client: contract.council?.name,
+    //   expert: contract.expert?.name,
+    // });
 
     return NextResponse.json(contract);
   } catch (error) {

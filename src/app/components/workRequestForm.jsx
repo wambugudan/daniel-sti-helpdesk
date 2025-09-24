@@ -25,6 +25,20 @@ const WorkRequestForm = ({ requestId }) => {
   const [editing, setEditing] = useState(false);
   const { currentUser } = useCurrentUser();
 
+  // State to manage "Other" category input visibility
+  const [isOtherCategory, setIsOtherCategory] = useState(false);
+
+  // 
+  const categories = [
+    "Science, technology and innovation policy analysis",
+    "Innovation management",
+    "Technology management",
+    "Social studies of research and/or science, technology and innovation",
+    "Monitoring, evaluation and learning",
+    "Data management systems",
+    "Other (Specify)",
+  ];
+
   // Check if editing an existing request
   useEffect(() => {
     if (requestId && requestId !== "new") {
@@ -40,6 +54,14 @@ const WorkRequestForm = ({ requestId }) => {
 
       const data = await response.json();
       Object.keys(data).forEach((key) => setValue(key, data[key]));
+
+      // Handle "Other" category
+      if (!categories.includes(data.category)) {
+        setValue("category", "Other (Specify)");
+        setValue("otherCategory", data.category);
+        setIsOtherCategory(true);
+      }
+
       setEditing(true);
     } catch (error) {
       toast.error("Error fetching work request");
@@ -55,12 +77,16 @@ const WorkRequestForm = ({ requestId }) => {
       // Pass the file and the target bucket name to the upload function
       const fileURL = data.file && data.file[0] ? await uploadFile(data.file[0], "jobs") : data.fileURL || "";
   
+      // Determine the final category value
+      const category =
+        data.category === "Other (Specify)" ? data.otherCategory : data.category;
 
       const workRequest = {
         title: data.title,
         description: data.description,
         budget: data.budget.toString(), // convert number to string here
-        category: data.category,
+        // category: data.category,
+        category,
         fileURL,
         deadline: new Date(data.deadline),
         durationDays: data.durationDays || null,
@@ -166,15 +192,45 @@ const WorkRequestForm = ({ requestId }) => {
           {errors.budget && <p className="text-red-500">{errors.budget.message}</p>}
         </div>
 
+        {/* Category Dropdown */}
         <div>
-          <label htmlFor="category" className="block font-medium">Category</label>
-          <input
+          <label htmlFor="category" className="block font-medium"> Category </label>
+          <select
             id="category"
             {...register("category", { required: "Category is required" })}
             className="border rounded-md px-3 py-2 w-full"
-          />
-          {errors.category && <p className="text-red-500">{errors.category.message}</p>}
+            onChange={(e) => setIsOtherCategory(e.target.value === "Other (Specify)")}
+          >
+            <option value="">-- Select Category --</option>
+            {categories.map((cat) => (
+              <option key={cat} value={cat}>
+                {cat}
+              </option>
+            ))}
+          </select>
+          {errors.category && (
+            <p className="text-red-500">{errors.category.message}</p>
+          )}
         </div>
+
+        {/* Other Category Input */}
+        {isOtherCategory && (
+          <div>
+            <label htmlFor="otherCategory" className="block font-medium">
+              Specify Category
+            </label>
+            <input
+              id="otherCategory"
+              {...register("otherCategory", {
+                required: "Please specify a category",
+              })}
+              className="border rounded-md px-3 py-2 w-full"
+            />
+            {errors.otherCategory && (
+              <p className="text-red-500">{errors.otherCategory.message}</p>
+            )}
+          </div>
+        )}
 
         <div>
           <label htmlFor="deadline" className="block font-medium">Deadline</label>

@@ -13,7 +13,7 @@ export async function POST(req) {
     const message = formData.get("message");
     const file = formData.get("file");
 
-    console.log("🔍 Submitting with:", { userId, workRequestId, message });
+    // console.log("🔍 Submitting with:", { userId, workRequestId, message });
 
 
     if (!userId || !workRequestId || workRequestId === "undefined") {
@@ -25,7 +25,7 @@ export async function POST(req) {
         workRequestId,
       },
     });
-    console.log("🧾 All contracts for workRequestId:", workRequestId, allContracts);
+    // console.log("🧾 All contracts for workRequestId:", workRequestId, allContracts);
 
 
     // ✅ Find the active contract
@@ -111,7 +111,7 @@ export async function POST(req) {
             relatedType: "WORK_REQUEST",
           }),
         });
-        console.log("✅ Submission notification created for client.");
+        // console.log("✅ Submission notification created for client.");
       } else {
         console.warn("⚠️ Work request not found for notification, ID:", workRequestId);
       }

@@ -32,7 +32,7 @@ export default function ChangePasswordPage() {
     // If authenticated and password change is NOT required, redirect to submissions
     if (session?.user && !session.user.forcePasswordChange) {
       if (pathname !== '/submissions') {
-        console.log("Redirecting to /submissions from useEffect (password change complete).");
+        // console.log("Redirecting to /submissions from useEffect (password change complete).");
         router.push('/submissions');
       }
       return; // Stop further execution in this effect
@@ -41,7 +41,7 @@ export default function ChangePasswordPage() {
     // If authenticated and password change IS required, ensure user is on /change-password
     if (session?.user && session.user.forcePasswordChange) {
       if (pathname !== '/change-password') {
-        console.log("Redirecting to /change-password from useEffect (password change required).");
+        // console.log("Redirecting to /change-password from useEffect (password change required).");
         router.push('/change-password');
       }
       return; // Stop further execution in this effect

@@ -11,7 +11,7 @@ export async function GET(request, {params}) {
 
     const userId = request.headers.get('x-user-id'); // 👈 Extract userId from header
 
-    console.log("Fetching work request with ID:", id, "for user:", userId);
+    // console.log("Fetching work request with ID:", id, "for user:", userId);
 
     const workRequest = await prisma.workRequest.findUnique({
       where: { id },

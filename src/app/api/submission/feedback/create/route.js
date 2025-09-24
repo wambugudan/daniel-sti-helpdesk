@@ -6,7 +6,7 @@ export async function POST(req) {
   try {
     // ✅ Read body only once
     const body = await req.json();
-    console.log("Incoming body:", body);
+    // console.log("Incoming body:", body);
 
     const { submissionId, comment, status, councilId } = body;
 

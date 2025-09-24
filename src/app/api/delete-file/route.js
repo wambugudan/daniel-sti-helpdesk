@@ -14,7 +14,7 @@ export async function POST(request) {
     try {
         const { filePath, bucketName } = await request.json();
 
-        console.log(`Attempting to delete file: ${filePath} from bucket: ${bucketName}`);
+        // console.log(`Attempting to delete file: ${filePath} from bucket: ${bucketName}`);
 
         if (!filePath || !bucketName) {
             return NextResponse.json({ error: "File path and bucket name are required" }, { status: 400 });
