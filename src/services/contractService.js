@@ -65,7 +65,7 @@ export const createContract = async (contractData) => {
     }
 
     const contract = await response.json();
-    console.log("✅ Contract created:", contract);
+    // console.log("✅ Contract created:", contract);
     return { contract };
   } catch (error) {
     console.error("💥 Contract creation error:", error);
@@ -76,7 +76,7 @@ export const createContract = async (contractData) => {
 
 export const fetchContract = async (contractId, userId) => {
   try {
-    console.log("📡 Fetching contract from API:", { contractId, userId });
+    // console.log("📡 Fetching contract from API:", { contractId, userId });
 
     const response = await fetch(`/api/contract/${contractId}`, {
       headers: {
@@ -84,7 +84,7 @@ export const fetchContract = async (contractId, userId) => {
       },
     });
 
-    console.log("🔎 Raw response status:", response.status);
+    // console.log("🔎 Raw response status:", response.status);
 
     if (!response.ok) {
       const err = await response.text();
@@ -93,7 +93,7 @@ export const fetchContract = async (contractId, userId) => {
     }
 
     const data = await response.json();
-    console.log("✅ Contract data received from API:", data);
+    // console.log("✅ Contract data received from API:", data);
 
     return data;
   } catch (error) {

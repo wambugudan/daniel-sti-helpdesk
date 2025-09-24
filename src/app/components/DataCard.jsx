@@ -65,7 +65,7 @@ const DataCard = ({ workRequest, currentUser, onView, showStatus = false }) => {
           if (!fileDeleteResponse.ok) {
             console.error("Failed to delete file from Supabase storage.");
           } else {
-            console.log("File deleted successfully from Supabase storage.");
+            // console.log("File deleted successfully from Supabase storage.");
           }
         }
       }

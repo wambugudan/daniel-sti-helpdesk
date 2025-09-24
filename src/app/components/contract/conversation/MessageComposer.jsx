@@ -10,10 +10,10 @@ const MessageComposer = ({
   const handleSend = () => {
     if (!newMessage && !newFile) return; // prevent empty send
 
-    console.log("📤 Sending attempt:", {
-      content: newMessage,
-      file: newFile,
-    });
+    // console.log("📤 Sending attempt:", {
+    //   content: newMessage,
+    //   file: newFile,
+    // });
 
     sendMessage({
       content: newMessage,

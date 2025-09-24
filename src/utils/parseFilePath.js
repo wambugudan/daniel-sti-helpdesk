@@ -66,7 +66,7 @@ export function parseFilePath(fileURL, bucketName = "jobs") {
 
       // Everything after the bucket name is the file path
       const relativePath = parts.slice(bucketIndex + 1).join("/");
-      console.log("📂 Parsed file path for Supabase bucket:", relativePath);
+      // console.log("📂 Parsed file path for Supabase bucket:", relativePath);
       return decodeURIComponent(relativePath);
     } catch (err) {
       console.error("Error parsing Supabase URL:", err);

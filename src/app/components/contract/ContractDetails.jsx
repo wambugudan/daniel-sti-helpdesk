@@ -16,11 +16,11 @@ const ContractDetails = ({ contractData }) => {
   );
 
   useEffect(() => {
-    console.log("📝 Full contractData in ContractDetails:", contractData);
+    // console.log("📝 Full contractData in ContractDetails:", contractData);
   }, [contractData]);
 
   useEffect(() => {
-    console.log("🎯 Accepted Bid object:", contractData?.acceptedBid);
+    // console.log("🎯 Accepted Bid object:", contractData?.acceptedBid);
   }, [contractData]);
 
 

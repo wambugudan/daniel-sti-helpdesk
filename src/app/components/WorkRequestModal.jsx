@@ -285,7 +285,7 @@ const WorkRequestModal = ({ workRequest: initialWorkRequest, currentUser, onClos
             if (!res.ok) throw new Error("Failed to accept bid");
 
             toast.success("Bid accepted!");
-            console.log("🟢 Accept bid triggered for bid ID:", bidId);
+            // console.log("🟢 Accept bid triggered for bid ID:", bidId);
 
             await fetchWorkRequestDetails();
             await refreshNotifications();

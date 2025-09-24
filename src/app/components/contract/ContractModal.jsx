@@ -34,8 +34,8 @@ const ContractModal = ({ contract, contractData, onClose, handleCancelContract }
   // ✅ Find submissionId from acceptedBid
   const submissionId = resolvedContract?.acceptedBid?.submission?.id || null;
 
-  console.log("📌 resolvedContract:", resolvedContract);
-  console.log("🔑 submissionId for conversation:", submissionId);
+  // console.log("📌 resolvedContract:", resolvedContract);
+  // console.log("🔑 submissionId for conversation:", submissionId);
 
   // Submission logic
   const {

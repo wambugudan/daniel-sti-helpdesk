@@ -15,7 +15,7 @@ const MessageBubble = ({ msg, currentUserId }) => {
     // msg.senderId === currentUserId;
     msg.senderId === currentUserId || msg.sender?.id === currentUserId;
 
-  console.log("Message:", msg, "Current User ID:", currentUserId, "Is Own Message:", isOwnMessage);
+  // console.log("Message:", msg, "Current User ID:", currentUserId, "Is Own Message:", isOwnMessage);
   
 
   return (
